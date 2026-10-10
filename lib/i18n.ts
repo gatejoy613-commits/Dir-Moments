@@ -1,0 +1,86 @@
+import { cookies } from "next/headers";
+import type { L, Lang } from "./catalog";
+
+// Amharic copy is a first draft and needs review by a native speaker before launch.
+const DICT = {
+  appName: { en: "Addis Events", am: "አዲስ ኢቨንትስ" },
+  tagline: { en: "Find photographers, DJs, decorators and more for your event in Addis Ababa. Contact them directly, free.", am: "ለዝግጅትዎ ፎቶግራፈር፣ ዲጄ፣ ዲኮር እና ሌሎችን በአዲስ አበባ ያግኙ። በቀጥታ ያግኟቸው፣ በነጻ።" },
+  browse: { en: "Browse", am: "ፈልግ" },
+  listBusiness: { en: "List your business", am: "ስራዎን ያስመዝግቡ" },
+  search: { en: "Search", am: "ፈልግ" },
+  searchPlaceholder: { en: "Name or style, e.g. traditional, drone", am: "ስም ወይም አይነት፣ ለምሳሌ ባህላዊ" },
+  allCategories: { en: "All categories", am: "ሁሉም ዘርፎች" },
+  anySubcity: { en: "Any sub-city", am: "ሁሉም ክፍለ ከተሞች" },
+  eventDate: { en: "Event date", am: "የዝግጅት ቀን" },
+  maxBudget: { en: "Max starting price (ETB)", am: "ከፍተኛ መነሻ ዋጋ (ብር)" },
+  minRating: { en: "Minimum rating", am: "ዝቅተኛ ደረጃ" },
+  any: { en: "Any", am: "ማንኛውም" },
+  verifiedOnly: { en: "Verified only", am: "የተረጋገጡ ብቻ" },
+  categories: { en: "Categories", am: "ዘርፎች" },
+  seasonPicks: { en: "Wedding season picks", am: "የሰርግ ወቅት ምርጫዎች" },
+  recentlyVerified: { en: "Recently verified", am: "በቅርቡ የተረጋገጡ" },
+  sponsored: { en: "Sponsored", am: "ስፖንሰር" },
+  verified: { en: "Verified", am: "የተረጋገጠ" },
+  verifiedHelp: { en: "We met this vendor in person and checked their work.", am: "ይህን ባለሙያ በአካል አግኝተን ስራቸውን አረጋግጠናል።" },
+  from: { en: "From", am: "ከ" },
+  etb: { en: "ETB", am: "ብር" },
+  reviews: { en: "reviews", am: "አስተያየቶች" },
+  noReviews: { en: "No reviews yet", am: "እስካሁን አስተያየት የለም" },
+  results: { en: "results", am: "ውጤቶች" },
+  noResults: { en: "No vendors match these filters. Try another date or sub-city.", am: "ምንም አልተገኘም። ሌላ ቀን ወይም ክፍለ ከተማ ይሞክሩ።" },
+  freeOn: { en: "Showing vendors free on", am: "ነጻ የሆኑ ባለሙያዎች በ" },
+  next: { en: "Next", am: "ቀጣይ" },
+  prev: { en: "Previous", am: "ቀዳሚ" },
+  call: { en: "Call", am: "ይደውሉ" },
+  telegram: { en: "Telegram", am: "ቴሌግራም" },
+  whatsapp: { en: "WhatsApp", am: "ዋትስአፕ" },
+  servesIn: { en: "Serves", am: "የሚሰሩበት" },
+  about: { en: "About", am: "ስለ እኛ" },
+  availability: { en: "Availability", am: "ነጻ ቀናት" },
+  booked: { en: "Booked", am: "ተይዟል" },
+  free: { en: "Free", am: "ነጻ" },
+  availabilityHelp: { en: "Dates in red are already booked. Confirm with the vendor when you call.", am: "በቀይ ያሉት ቀናት ተይዘዋል። ሲደውሉ ያረጋግጡ።" },
+  writeReview: { en: "Write a review", am: "አስተያየት ይጻፉ" },
+  yourName: { en: "Your name", am: "ስምዎ" },
+  yourPhone: { en: "Your phone number", am: "ስልክ ቁጥርዎ" },
+  rating: { en: "Rating", am: "ደረጃ" },
+  yourReview: { en: "Your review", am: "አስተያየትዎ" },
+  eventType: { en: "Event type", am: "የዝግጅት አይነት" },
+  submit: { en: "Submit", am: "ላክ" },
+  reviewThanks: { en: "Thanks. Your review will appear after we check it.", am: "እናመሰግናለን። አስተያየትዎ ከተረጋገጠ በኋላ ይታያል።" },
+  reviewRules: { en: "Reviews are checked before they appear. Vendors can reply, but paying never removes a review.", am: "አስተያየቶች ከመታየታቸው በፊት ይረጋገጣሉ። ባለሙያዎች መልስ መስጠት ይችላሉ፤ ክፍያ አስተያየትን አያስወግድም።" },
+  vendorReply: { en: "Reply from the vendor", am: "የባለሙያው መልስ" },
+  underReview: { en: "Under review", am: "በመጣራት ላይ" },
+  packages: { en: "Packages and prices", am: "ፓኬጆችና ዋጋዎች" },
+  hours: { en: "hours", am: "ሰዓት" },
+  share: { en: "Share", am: "አጋራ" },
+  noCommission: { en: "Free to list. No commission. Clients call you directly.", am: "መመዝገብ ነጻ ነው። ኮሚሽን የለም። ደንበኞች በቀጥታ ይደውሉልዎታል።" },
+  rankingRules: { en: "How results are ordered", am: "ውጤቶች እንዴት ይደረደራሉ" },
+  rankingRulesText: {
+    en: "Up to 3 results per page are labelled Sponsored. The rest are ordered by rating, number of reviews, profile completeness and verification. Pro and Featured vendors get a boost in their category. A vendor with a poor rating or repeated no-show reports loses sponsored placement even if paying.",
+    am: "በአንድ ገጽ እስከ 3 ውጤቶች ስፖንሰር ተብለው ይታያሉ። ሌሎቹ በደረጃ፣ በአስተያየት ብዛት፣ በመገለጫ ሙሉነትና በማረጋገጫ ይደረደራሉ። ፕሮ እና ፊቸርድ ባለሙያዎች በዘርፋቸው ቅድሚያ ያገኛሉ። ዝቅተኛ ደረጃ ወይም ተደጋጋሚ ያለመገኘት ቅሬታ ያለው ባለሙያ ቢከፍልም የስፖንሰር ቦታ ያጣል።",
+  },
+  footer: { en: "A free directory of event vendors in Addis Ababa. We never take a commission.", am: "በአዲስ አበባ ያሉ የዝግጅት ባለሙያዎች ነጻ ማውጫ። ኮሚሽን አንወስድም።" },
+} satisfies Record<string, L>;
+
+export type DictKey = keyof typeof DICT;
+
+export async function getLang(): Promise<Lang> {
+  const c = (await cookies()).get("lang")?.value;
+  return c === "am" ? "am" : "en";
+}
+
+export function translator(lang: Lang) {
+  return (key: DictKey) => DICT[key][lang];
+}
+
+export async function i18n() {
+  const lang = await getLang();
+  return { lang, t: translator(lang), l: (x: L | undefined | null) => (x ? x[lang] || x.en : "") };
+}
+
+export function etb(n: number | null | undefined, lang: Lang) {
+  if (n == null) return "";
+  const s = n.toLocaleString("en-US");
+  return lang === "am" ? `${s} ብር` : `ETB ${s}`;
+}
