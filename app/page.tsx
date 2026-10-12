@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { CATEGORIES, EVENT_TYPES, SUBCITIES, occasionCategories } from "@/lib/catalog";
+import { CATEGORIES, EVENT_TYPES, SUBCITIES } from "@/lib/catalog";
 import { i18n } from "@/lib/i18n";
 import { FOUNDING_VENDOR_LIMIT } from "@/lib/tiers";
-import { categoryCounts, homepagePicks, recentlyVerified, siteStats } from "@/lib/vendors";
+import { homepagePicks, recentlyVerified, siteStats } from "@/lib/vendors";
 import { SearchForm } from "@/components/SearchForm";
 import { VendorCard } from "@/components/VendorCard";
 
@@ -10,8 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const { lang, t } = await i18n();
-  const [counts, picks, verified, stats] = await Promise.all([
-    categoryCounts(),
+  const [picks, verified, stats] = await Promise.all([
     homepagePicks(),
     recentlyVerified(),
     siteStats(),
@@ -51,16 +50,12 @@ export default async function Home() {
       <h2>{t("occasionsTitle")}</h2>
       <p className="muted small">{t("occasionsLede")}</p>
       <div className="occasions">
-        {EVENT_TYPES.map((e) => {
-          const n = occasionCategories(e.key).reduce((sum, k) => sum + (counts[k] ?? 0), 0);
-          return (
-            <Link key={e.key} href={`/vendors?occasion=${e.key}`} className="occasion">
-              <span className="icon">{e.icon}</span>
-              <span className="label">{e.name[lang]}</span>
-              <span className="n">{n}</span>
-            </Link>
-          );
-        })}
+        {EVENT_TYPES.map((e) => (
+          <Link key={e.key} href={`/vendors?occasion=${e.key}`} className="occasion">
+            <span className="icon">{e.icon}</span>
+            <span className="label">{e.name[lang]}</span>
+          </Link>
+        ))}
       </div>
 
       <h2>{t("categories")}</h2>
@@ -68,7 +63,7 @@ export default async function Home() {
         {CATEGORIES.map((c) => (
           <Link key={c.key} href={`/vendors?category=${c.key}`} className="cat" style={{ background: c.tint }}>
             <span className="icon">{c.icon}</span>
-            <span>{c.name[lang]}<span className="n">{counts[c.key] ?? 0}</span></span>
+            <span>{c.name[lang]}</span>
           </Link>
         ))}
       </div>

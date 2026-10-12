@@ -73,7 +73,6 @@ textarea { min-height: 90px; }
 .cat-grid { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .cat { display: flex; gap: .6rem; align-items: center; padding: .85rem; background: var(--surface); border: 1px solid rgba(29, 27, 25, .07); border-radius: var(--radius); text-decoration: none; color: var(--text); font-weight: 600; box-shadow: var(--shadow); }
 .cat .icon { font-size: 1.4rem; }
-.cat .n { color: var(--muted); font-weight: 400; font-size: .8rem; display: block; }
 
 .vcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; color: var(--text); display: flex; flex-direction: column; box-shadow: var(--shadow); }
 .vcard .img { aspect-ratio: 4/3; background: #eee center/cover no-repeat; position: relative; }
@@ -124,7 +123,6 @@ textarea { min-height: 90px; }
 }
 .occasion .icon { font-size: 1.7rem; line-height: 1.25; }
 .occasion .label { font-weight: 700; font-size: .9rem; }
-.occasion .n { font-size: .75rem; color: var(--muted); }
 
 .value-props { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; margin: 0; padding: 0; }
 .value-props li {
