@@ -31,20 +31,20 @@ A free, commission-free directory of event vendors in Addis Ababa. Clients find 
 - SMS login (vendors use a private link, admin uses one shared password).
 - Chapa API and webhook (payments are recorded by hand, which matches the pilot plan).
 - Save and compare shortlists, in-app messages.
-- Cloud storage/CDN for photos (stored on local disk in `uploads/`).
 - SMS reminders before a plan expires (the admin page lists who to remind).
 - Amharic copy needs a native speaker's review.
 - Phase B (bookings, deposits, payouts) is out of scope.
 
 ## Run it
 
-Requirements: Node 20+, PostgreSQL 14+.
+Requirements: Node 20+, PostgreSQL 14+, and a Supabase project for photo storage.
 
 ```bash
 cp .env.example .env          # set DATABASE_URL, ADMIN_PASSWORD, SESSION_SECRET
 createdb directory            # or use any Postgres database
 npm install
 npm run db:reset              # creates tables and seeds 36 sample vendors
+npm run storage:setup         # creates the public bucket photos are uploaded to
 npm run dev                   # http://localhost:3000
 ```
 
