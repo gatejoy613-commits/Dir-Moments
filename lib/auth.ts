@@ -5,8 +5,24 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 // v1 admin access is a single shared password. SMS login for clients and vendors comes next.
 const COOKIE = "admin_session";
 
+/**
+ * Secrets fall back to a known default in development so `npm run dev` works
+ * straight after `git clone`. In production that default is public knowledge,
+ * so a missing secret must stop the request instead of quietly signing cookies
+ * anyone could forge. Checked per call rather than at import time so that
+ * `next build` does not need the production secrets present.
+ */
+function requireSecret(name: "SESSION_SECRET" | "ADMIN_PASSWORD", devFallback: string) {
+  const value = process.env[name];
+  if (value) return value;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(`${name} is not set. Refusing to fall back to a public default in production.`);
+  }
+  return devFallback;
+}
+
 function sign(value: string) {
-  return createHmac("sha256", process.env.SESSION_SECRET || "dev-secret").update(value).digest("hex");
+  return createHmac("sha256", requireSecret("SESSION_SECRET", "dev-secret")).update(value).digest("hex");
 }
 
 export async function isAdmin() {
@@ -24,7 +40,7 @@ export async function requireAdmin() {
 }
 
 export async function adminLogin(password: string) {
-  const want = process.env.ADMIN_PASSWORD || "admin";
+  const want = requireSecret("ADMIN_PASSWORD", "admin");
   const a = Buffer.from(password);
   const b = Buffer.from(want);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return false;
