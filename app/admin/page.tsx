@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { one, q } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/accounts";
 import { adminCounts } from "@/lib/adminData";
 import { todayAddis, addDays } from "@/lib/ethiopian";
 import { CATEGORIES } from "@/lib/catalog";

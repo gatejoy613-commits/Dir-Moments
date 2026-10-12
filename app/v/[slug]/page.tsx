@@ -8,7 +8,7 @@ import { template, type Section } from "@/lib/templates";
 import { todayAddis } from "@/lib/ethiopian";
 import { recordView, vendorBy, vendorDetail, type ItemRow, type PackageRow } from "@/lib/vendors";
 import { q } from "@/lib/db";
-import { isAdmin } from "@/lib/auth";
+import { currentProfile, isAdmin } from "@/lib/accounts";
 import { normalisePhone, str } from "@/lib/util";
 import { ContactButtons } from "@/components/ContactButtons";
 import { Calendar } from "@/components/Calendar";
@@ -34,9 +34,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 async function submitReview(fd: FormData) {
   "use server";
+  // Reviews come from accounts now: the name is the one on the account rather
+  // than anything typed into the form, so a review cannot be signed with
+  // somebody else's name.
+  const me = await currentProfile();
+  if (!me) redirect("/account/signin?denied=1");
   const vendorId = Number(fd.get("vendorId"));
   const slug = str(fd.get("slug"));
-  const name = str(fd.get("name")).slice(0, 80);
+  const name = (me.name || me.email).slice(0, 80);
   const phone = normalisePhone(str(fd.get("phone")));
   const rating = Number(fd.get("rating"));
   const body = str(fd.get("body")).slice(0, 2000);
@@ -46,11 +51,14 @@ async function submitReview(fd: FormData) {
   }
   // One review per phone number per vendor.
   await q(
-    `INSERT INTO reviews (vendor_id, reviewer_name, reviewer_phone, rating, body, event_type)
-     SELECT $1, $2, $3, $4, $5, $6
+    `INSERT INTO reviews (vendor_id, reviewer_name, reviewer_phone, rating, body, event_type, user_id)
+     SELECT $1, $2, $3, $4, $5, $6, $7
      WHERE EXISTS (SELECT 1 FROM vendors WHERE id = $1 AND status = 'approved')
-       AND NOT EXISTS (SELECT 1 FROM reviews WHERE vendor_id = $1 AND reviewer_phone = $3)`,
-    [vendorId, name, phone, rating, body, eventType],
+       AND NOT EXISTS (
+         SELECT 1 FROM reviews
+          WHERE vendor_id = $1 AND (reviewer_phone = $3 OR user_id = $7)
+       )`,
+    [vendorId, name, phone, rating, body, eventType, me.id],
   );
   redirect(`/v/${slug}?review=thanks#reviews`);
 }
@@ -97,6 +105,7 @@ export default async function VendorPage({ params, searchParams }: { params: Par
   if (!preview) await recordView(v.id);
 
   const { packages, items, busy, reviews } = await vendorDetail(v.id);
+  const me = await currentProfile();
   const tpl = template(v.category)!;
   const cat = category(v.category)!;
   const name = lang === "am" && v.name_am ? v.name_am : v.name;
@@ -204,7 +213,16 @@ export default async function VendorPage({ params, searchParams }: { params: Par
         </div>
       ))}
 
-      {!preview && (
+      {!preview && !me && (
+        <div className="notice" style={{ marginTop: ".75rem" }}>
+          {lang === "am" ? "አስተያየት ለመጻፍ አካውንት ያስፈልጋል።" : "You need an account to leave a review."}{" "}
+          <Link href="/account/signin">{lang === "am" ? "ይግቡ" : "Sign in"}</Link>
+          {" · "}
+          <Link href="/account/signup">{lang === "am" ? "ይመዝገቡ" : "Create one"}</Link>
+        </div>
+      )}
+
+      {!preview && me && (
         <details className="more" id="review-form" open={sp.review === "invalid"}>
           <summary>{t("writeReview")}</summary>
           {sp.review === "invalid" && <div className="notice error">{lang === "am" ? "እባክዎ ሁሉንም ይሙሉ፤ ትክክለኛ ስልክ ቁጥር ያስገቡ።" : "Please fill in every field with a valid Ethiopian phone number and at least a sentence."}</div>}
@@ -212,7 +230,6 @@ export default async function VendorPage({ params, searchParams }: { params: Par
           <form action={submitReview} className="card">
             <input type="hidden" name="vendorId" value={v.id} />
             <input type="hidden" name="slug" value={v.slug} />
-            <div className="field"><label>{t("yourName")}</label><input type="text" name="name" required maxLength={80} /></div>
             <div className="field"><label>{t("yourPhone")}</label><input type="tel" name="phone" required placeholder="09…" />
               <div className="hint">{lang === "am" ? "አይታተምም። ለማረጋገጥ ብቻ።" : "Not shown publicly. Used to check the review is real."}</div></div>
             <div className="field"><label>{t("eventType")}</label>
