@@ -188,9 +188,11 @@ async function main() {
     const phone = `+2519${String(10000000 + i * 1234567).slice(0, 8)}`;
     const look = v.plan === "featured" ? pick(["gold", "night", "modern"]) : pick(["classic", "modern", "bold"]);
     const r = await pool.query(
-      `INSERT INTO vendors (slug, name, name_am, category, look, bio, bio_am, sections, phone, telegram, whatsapp, starting_price, status, verified, verified_at, manage_token, created_at, admin_note)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16, now() - ($17 || ' days')::interval, $18) RETURNING id`,
+      `INSERT INTO vendors (slug, name, name_am, category, look, bio, bio_am, sections, phone, email, telegram, whatsapp, starting_price, status, verified, verified_at, manage_token, created_at, admin_note)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17, now() - ($18 || ' days')::interval, $19) RETURNING id`,
       [slug, v.name, v.am, v.cat, look, v.bio, v.bioAm, JSON.stringify(sections), phone,
+        // example.com is reserved for documentation, so a stray send goes nowhere.
+        `${slug}@example.com`,
         rnd() > 0.2 ? slug.replace(/-/g, "_").slice(0, 24) : null, rnd() > 0.4 ? phone : null,
         Math.min(...v.pkgs.map((p) => p[2])), v.status ?? "approved", !!v.verified, v.verified ? new Date(Date.now() - int(1, 60) * 86400000) : null,
         `demo-${slug}`, String(v.status === "pending" ? int(0, 2) : int(20, 200)),

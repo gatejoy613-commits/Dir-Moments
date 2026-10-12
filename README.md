@@ -14,8 +14,8 @@ A free, commission-free directory of event vendors in Addis Ababa. Clients find 
 - Amharic and English throughout (toggle in the header). Share to Telegram/WhatsApp. SEO metadata and schema.org data on vendor pages.
 
 **Vendors**
-- Sign up from a category template at `/join` (no account needed in v1).
-- A private management link (`/manage/<token>`): edit profile, upload photos (compressed to WebP automatically), mark busy dates, reply to and flag reviews, see stats (views for Free; contact taps and search appearances for Pro; category comparison for Featured), request Pro or Featured, or claim the founding offer (first 100 vendors: Pro free for 3 months).
+- Sign up from a category template at `/join`. Signing up signs you in; an email address is the only account there is.
+- Sign in with a link emailed to them (no password), then at `/manage`: edit profile, upload photos (compressed to WebP automatically), mark busy dates, reply to and flag reviews, see stats (views for Free; contact taps and search appearances for Pro; category comparison for Featured), request Pro or Featured, or claim the founding offer (first 100 vendors: Pro free for 3 months).
 - Plan limits enforced: photos, videos, packages, premium looks.
 
 **Admin** (`/admin`)
@@ -28,7 +28,7 @@ A free, commission-free directory of event vendors in Addis Ababa. Clients find 
 
 ## Not in v1 yet
 
-- SMS login (vendors use a private link, admin uses one shared password).
+- SMS login. Vendors sign in by email; admin still uses one shared password.
 - Chapa API and webhook (payments are recorded by hand, which matches the pilot plan).
 - Save and compare shortlists, in-app messages.
 - SMS reminders before a plan expires (the admin page lists who to remind).
@@ -50,10 +50,52 @@ npm run dev                   # http://localhost:3000
 
 For production: `npm run build && npm start`.
 
+## Deploying
+
+`netlify.toml` configures a Netlify deploy. Next.js needs no plugin block there:
+Netlify detects the framework and installs the adapter itself.
+
+Set these in Site configuration > Environment variables, with **both** the Builds
+and Functions scopes ticked (the app reads them at request time, not just at
+build time):
+
+| Variable | Notes |
+| --- | --- |
+| `DATABASE_URL` | **Must be a pooler string, not the direct one.** See below. |
+| `SESSION_SECRET` | A long random string. Generate a fresh one; do not reuse the local value. |
+| `ADMIN_PASSWORD` | Likewise. |
+| `SUPABASE_URL` | `https://<project-ref>.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only. Never expose it to the browser. |
+| `RESEND_API_KEY` | Sends vendor sign-in links. Needs a verified domain to reach real addresses. |
+| `MAIL_FROM` | e.g. `Dir Moments <login@yourdomain.com>` |
+
+### The direct database connection does not work on serverless hosts
+
+`db.<project-ref>.supabase.co` resolves to an **IPv6 address only**. Netlify
+functions run on AWS Lambda, which has no IPv6 egress, so a direct connection
+string deploys fine and then fails on the first query of every page.
+
+Use a **pooler** string instead, from the Supabase dashboard's Connect dialog.
+Pooler hosts are IPv4. Transaction mode (port 6543) is the one meant for
+serverless; the host cannot be derived from the region, so copy it from the
+dialog rather than guessing.
+
+A direct connection is still the better choice locally, where it has none of
+these constraints.
+
+### Two things to watch
+
+- `lib/db.ts` opens a pool of up to 10 connections per instance. That is sized
+  for one long-lived server, not for many short-lived function instances; lower
+  it if Supabase starts refusing connections.
+- A free Supabase project **pauses after 7 days without activity** and needs a
+  manual unpause from the dashboard. A quiet pilot week takes the site down.
+
+
 Try it:
 - Home: `/`, search: `/vendors?category=photographer&subcity=bole`
 - A Featured profile: `/v/afro-addis-band`
-- A vendor's private page: `/manage/demo-lucy-lens-studio` (seeded vendors use `demo-<slug>` tokens)
+- Vendor sign-in: `/manage/login` (seeded vendors use `<slug>@example.com`). Old `/manage/<token>` links still work and swap themselves for a session
 - Admin: `/admin`, password from `ADMIN_PASSWORD`
 
 All seeded vendors, phone numbers and reviews are made up. Photos are generated placeholders.

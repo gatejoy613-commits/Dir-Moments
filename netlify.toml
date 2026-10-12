@@ -1,0 +1,27 @@
+# Netlify deployment.
+#
+# Next.js 13.5+ needs no plugin block here: Netlify detects the framework and
+# installs @netlify/plugin-nextjs (the OpenNext adapter) itself. That adapter
+# runs SSR, route handlers and server actions as serverless functions, which is
+# this whole app - 12 of 16 pages are force-dynamic and nothing is cacheable.
+#
+# Secrets are deliberately absent. This file is committed, and it is read only
+# at build time, so functions could not see runtime values from it anyway. Set
+# them in Site configuration > Environment variables with both the Builds and
+# Functions scopes ticked.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # package.json asks for >=20. Pinned so a change to Netlify's default cannot
+  # move the runtime under sharp, which ships native binaries.
+  NODE_VERSION = "22"
+
+[context.production.environment]
+  # Server actions post back to the deploy their page came from. Without this a
+  # client still holding a page from the previous deploy has its action
+  # rejected - a vendor loses a half-filled profile form. Every mutation in this
+  # app is a server action, so it is not optional.
+  NETLIFY_NEXT_SKEW_PROTECTION = "true"

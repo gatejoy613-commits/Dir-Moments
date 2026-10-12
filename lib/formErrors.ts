@@ -2,6 +2,8 @@ import type { Lang } from "./catalog";
 
 const ERRORS: Record<string, { en: string; am: string }> = {
   name: { en: "Please enter your business name.", am: "እባክዎ የስራ ስምዎን ያስገቡ።" },
+  email: { en: "Enter a valid email address. You will sign in with it.", am: "ትክክለኛ ኢሜይል ያስገቡ፡ በእሱ ይገባሉ።" },
+  "email-taken": { en: "That email already has a listing. Sign in instead.", am: "ይህ ኢሜይል አስቀድሞ ተመዝግቦል። ይግቡ።" },
   phone: { en: "Please enter a valid Ethiopian phone number, like 0911 234 567.", am: "እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ፣ ለምሳሌ 0911 234 567።" },
   category: { en: "Pick a category.", am: "ዘርፍ ይምረጡ።" },
 };
