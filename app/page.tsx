@@ -21,6 +21,10 @@ export default async function Home() {
   return (
     <>
       <section className="hero">
+        {/* Decorative: the eyebrow, headline and lede carry the meaning, so no alt text.
+            Width and height are set to reserve the space and avoid a layout shift. */}
+        <img className="hero-banner" src="/hero.webp" alt="" width={1376} height={467} />
+        <div className="hero-body">
         <p className="eyebrow">{t("heroEyebrow")}</p>
         <h1>{t("heroTitle")}</h1>
         <p className="lede">{t("heroLede")}</p>
@@ -29,6 +33,7 @@ export default async function Home() {
           <li>{t("valueNoCommission")}</li>
           <li>{t("valueDirect")}</li>
         </ul>
+        </div>
       </section>
 
       <SearchForm f={{}} lang={lang} compact />

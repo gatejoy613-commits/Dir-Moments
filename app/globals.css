@@ -90,7 +90,7 @@ textarea { min-height: 90px; }
    costs no extra request and no image bytes on a slow connection. */
 .hero {
   position: relative; overflow: hidden;
-  padding: 2rem 1.1rem 1.75rem; margin-bottom: 1rem;
+  padding: 0; margin-bottom: 1rem;
   border: 1px solid #f2e5d6; border-radius: 18px;
   background:
     radial-gradient(circle at 12% 20%, rgba(183, 134, 43, .14) 0 6px, transparent 7px),
@@ -101,10 +101,16 @@ textarea { min-height: 90px; }
     radial-gradient(circle at 40% 62%, rgba(183, 134, 43, .08) 0 3px, transparent 4px),
     linear-gradient(165deg, #fdf4e8 0%, #fdeff1 44%, var(--surface) 100%);
 }
+.hero-banner { width: 100%; height: 150px; object-fit: cover; object-position: center 30%; }
+.hero-body { padding: 1.4rem 1.1rem 1.6rem; }
 .hero .eyebrow { font-size: .8rem; font-weight: 700; color: var(--gold); margin-bottom: .45rem; }
 .hero h1 { font-size: 1.75rem; max-width: 18ch; }
 .hero .lede { color: var(--muted); max-width: 56ch; margin-bottom: 1rem; }
-@media (min-width: 720px) { .hero { padding: 2.75rem 2rem; } .hero h1 { font-size: 2.3rem; } }
+@media (min-width: 720px) {
+  .hero-banner { height: 225px; }
+  .hero-body { padding: 2rem 2rem 2.25rem; }
+  .hero h1 { font-size: 2.3rem; }
+}
 
 /* Occasions: the question clients actually arrive with. */
 .occasions { display: grid; gap: .6rem; grid-template-columns: repeat(2, 1fr); margin-bottom: .5rem; }
