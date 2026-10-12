@@ -20,6 +20,8 @@ const T = {
   name: { en: "Business or stage name", am: "የስራ ወይም የመድረክ ስም" },
   nameAm: { en: "Name in Amharic (optional)", am: "ስም በአማርኛ (አማራጭ)" },
   phone: { en: "Phone number for calls", am: "ለጥሪ ስልክ ቁጥር" },
+  email: { en: "Email", am: "ኢሜይል" },
+  emailHint: { en: "You will sign in with a link sent here. Not shown to clients.", am: "ወደዚህ በሚላክ ሉንክ ይገባሉ። ለደንበኞች አይታይም።" },
   telegram: { en: "Telegram username (optional)", am: "የቴሌግራም ስም (አማራጭ)" },
   whatsapp: { en: "WhatsApp number (optional)", am: "የዋትስአፕ ቁጥር (አማራጭ)" },
   bio: { en: "About you in English", am: "ስለ እርስዎ በእንግሊዝኛ" },
@@ -64,6 +66,11 @@ export function VendorForm({ categoryKey, lang, action, vendor, packages = [], i
         <div className="field"><label>{tr("name")}</label><input type="text" name="name" required maxLength={80} defaultValue={vendor?.name} /></div>
         <div className="field"><label>{tr("nameAm")}</label><input type="text" name="name_am" maxLength={80} defaultValue={vendor?.name_am ?? ""} lang="am" /></div>
         <div className="field"><label>{tr("phone")}</label><input type="tel" name="phone" required placeholder="09XX XXX XXX" defaultValue={vendor?.phone} /></div>
+        <div className="field">
+          <label>{tr("email")}</label>
+          <input type="email" name="email" required autoComplete="email" placeholder="you@example.com" defaultValue={vendor?.email ?? ""} />
+          <div className="hint">{tr("emailHint")}</div>
+        </div>
         <div className="field"><label>{tr("telegram")}</label><input type="text" name="telegram" placeholder="@yourname" defaultValue={vendor?.telegram ?? ""} /></div>
         <div className="field"><label>{tr("whatsapp")}</label><input type="tel" name="whatsapp" placeholder="09XX XXX XXX" defaultValue={vendor?.whatsapp ?? ""} /></div>
         <div className="field">

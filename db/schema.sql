@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS vendors (
   -- Template section answers keyed by section key: { "<key>": { "en": "...", "am": "..." } }
   sections         JSONB NOT NULL DEFAULT '{}',
   phone            TEXT NOT NULL,
+  -- Vendors sign in with a link emailed here. Null for rows created before
+  -- email login existed; required for every new signup.
+  email            TEXT UNIQUE,
   telegram         TEXT,
   whatsapp         TEXT,
   starting_price   INTEGER,
@@ -137,5 +140,16 @@ DO $$ BEGIN
        AND conname = 'sponsored_slots_slot_key'
   ) THEN
     ALTER TABLE sponsored_slots ADD CONSTRAINT sponsored_slots_slot_key UNIQUE (category, month, vendor_id);
+  END IF;
+END $$;
+
+-- 2026-10: vendors sign in by email instead of carrying a secret link.
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS email TEXT;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+     WHERE conrelid = 'vendors'::regclass AND conname = 'vendors_email_key'
+  ) THEN
+    ALTER TABLE vendors ADD CONSTRAINT vendors_email_key UNIQUE (email);
   END IF;
 END $$;

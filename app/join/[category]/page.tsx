@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { category } from "@/lib/catalog";
 import { i18n } from "@/lib/i18n";
 import { saveVendorForm } from "@/lib/vendorForm";
+import { setVendorSession } from "@/lib/auth";
 import { formError } from "@/lib/formErrors";
 import { VendorForm } from "@/components/VendorForm";
 
@@ -13,7 +14,9 @@ async function create(fd: FormData) {
   const cat = String(fd.get("category"));
   if (!res.ok) redirect(`/join/${cat}?error=${res.error}`);
   const n = res.notices.length ? `&notices=${encodeURIComponent(res.notices.join(","))}` : "";
-  redirect(`/manage/${res.token}?welcome=1${n}`);
+  // Signing up signs you in. Nothing to bookmark, nothing to lose.
+  await setVendorSession(res.vendorId);
+  redirect(`/manage?welcome=1${n}`);
 }
 
 export default async function JoinCategory({ params, searchParams }: { params: Params; searchParams: Promise<{ error?: string }> }) {

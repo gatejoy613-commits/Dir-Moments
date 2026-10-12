@@ -6,6 +6,7 @@ import { etb, i18n } from "@/lib/i18n";
 import { addDays, dualDate, todayAddis } from "@/lib/ethiopian";
 import { completeness, vendorBy, vendorDetail, vendorStats } from "@/lib/vendors";
 import { one, q } from "@/lib/db";
+import { currentVendorId, vendorLogout } from "@/lib/auth";
 import { FOUNDING_VENDOR_LIMIT, PRICES, TIERS } from "@/lib/tiers";
 import { noticeText } from "@/lib/formErrors";
 import { str } from "@/lib/util";
@@ -15,42 +16,52 @@ import { Stars } from "@/components/Stars";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your profile", robots: { index: false } };
 
-type Params = Promise<{ token: string }>;
-
-async function vendorFromForm(fd: FormData) {
-  const v = await vendorBy("manage_token", str(fd.get("token")));
-  if (!v) throw new Error("Unknown vendor link");
+/**
+ * Every action re-reads the vendor from the session cookie. Nothing posted with
+ * the form decides whose listing is being changed, so a stray or forwarded form
+ * cannot act on someone else's profile.
+ */
+async function currentVendor() {
+  const id = await currentVendorId();
+  const v = id ? await vendorBy("id", id) : null;
+  if (!v) redirect("/manage/login");
   return v;
 }
 
 async function toggleDay(fd: FormData) {
   "use server";
-  const v = await vendorFromForm(fd);
+  const v = await currentVendor();
   const day = str(fd.get("day"));
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
   const deleted = await q("DELETE FROM availability WHERE vendor_id = $1 AND day = $2 RETURNING day", [v.id, day]);
   if (!deleted.length) await q("INSERT INTO availability (vendor_id, day) VALUES ($1, $2) ON CONFLICT DO NOTHING", [v.id, day]);
-  redirect(`/manage/${v.manage_token}#availability`);
+  redirect(`/manage#availability`);
 }
 
 async function replyReview(fd: FormData) {
   "use server";
-  const v = await vendorFromForm(fd);
+  const v = await currentVendor();
   await q("UPDATE reviews SET vendor_reply = $1 WHERE id = $2 AND vendor_id = $3", [str(fd.get("reply")).slice(0, 1000) || null, Number(fd.get("reviewId")), v.id]);
-  redirect(`/manage/${v.manage_token}#reviews`);
+  redirect(`/manage#reviews`);
 }
 
 async function flagReview(fd: FormData) {
   "use server";
-  const v = await vendorFromForm(fd);
+  const v = await currentVendor();
   await q("UPDATE reviews SET status = 'flagged', flag_reason = $1 WHERE id = $2 AND vendor_id = $3 AND status = 'published'",
     [str(fd.get("reason")).slice(0, 500) || "No reason given", Number(fd.get("reviewId")), v.id]);
-  redirect(`/manage/${v.manage_token}#reviews`);
+  redirect(`/manage#reviews`);
+}
+
+async function signOut() {
+  "use server";
+  await vendorLogout();
+  redirect("/");
 }
 
 async function requestPlan(fd: FormData) {
   "use server";
-  const v = await vendorFromForm(fd);
+  const v = await currentVendor();
   const plan = str(fd.get("plan"));
   const term = str(fd.get("term"));
   if (!["pro", "featured"].includes(plan) || !["month", "season", "year", "founding"].includes(term)) return;
@@ -66,16 +77,14 @@ async function requestPlan(fd: FormData) {
     }
     await q("INSERT INTO subscriptions (vendor_id, plan, term, amount) VALUES ($1, $2, $3, $4)", [v.id, plan, term, amount]);
   }
-  redirect(`/manage/${v.manage_token}?requested=1#plan`);
+  redirect(`/manage?requested=1#plan`);
 }
 
-export default async function Manage({ params, searchParams }: { params: Params; searchParams: Promise<Record<string, string | undefined>> }) {
-  const { token } = await params;
+export default async function Manage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
   const { lang } = await i18n();
   const am = lang === "am";
-  const v = await vendorBy("manage_token", token);
-  if (!v) notFound();
+  const v = await currentVendor();
   const [{ busy }, stats, allReviews, subs, foundingUsed] = await Promise.all([
     vendorDetail(v.id),
     vendorStats(v.id, v.category),
@@ -100,7 +109,7 @@ export default async function Manage({ params, searchParams }: { params: Params;
       {sp.welcome && (
         <div className="notice">
           <b>{am ? "ተመዝግበዋል!" : "You're registered!"}</b>{" "}
-          {am ? "ይህ የግል ሊንክዎ ነው። መገለጫዎን ለማስተካከል ያስቀምጡት (ቡክማርክ ያድርጉት)።" : "This page is your private link for managing your profile. Bookmark it and don't share it."}
+          {am ? "መገለጫዎ ተፈጥሯል። በማንኛውም ጊዜ በኢሜይልዎ መግባት ይችላሉ።" : "Your listing is created. You can sign back in any time with your email — nothing to bookmark."}
         </div>
       )}
       {sp.saved && <div className="notice">{am ? "ተቀምጧል።" : "Saved."}</div>}
@@ -113,7 +122,8 @@ export default async function Manage({ params, searchParams }: { params: Params;
         </div>
         <div className="row">
           <Link className="btn" href={`/v/${v.slug}?preview=${v.manage_token}`}>{am ? "መገለጫውን እይ" : "View profile"}</Link>
-          <Link className="btn primary" href={`/manage/${v.manage_token}/edit`}>{am ? "አስተካክል" : "Edit profile"}</Link>
+          <Link className="btn primary" href="/manage/edit">{am ? "አስተካክል" : "Edit profile"}</Link>
+          <form action={signOut}><button className="btn small" type="submit">{am ? "ውጣ" : "Sign out"}</button></form>
         </div>
       </div>
 
@@ -150,7 +160,6 @@ export default async function Manage({ params, searchParams }: { params: Params;
       <p className="small muted">{am ? "የተያዙ ቀናትን ለመምረጥ ቀኑን ይንኩ፤ እንደገና ሲነኩት ነጻ ይሆናል።" : "Tap a date to mark it booked; tap again to free it. Clients searching for that date won't see you."}</p>
       <Calendar start={todayAddis()} days={120} busy={busy} lang={lang} toggleAction={async (fd) => {
         "use server";
-        fd.set("token", token);
         await toggleDay(fd);
       }} />
 
@@ -162,7 +171,6 @@ export default async function Manage({ params, searchParams }: { params: Params;
           {r.status !== "published" && <span className="tag">{r.status === "pending" ? (am ? "በግምገማ ላይ" : "Waiting for moderation") : (am ? "ለማጣራት ተጠቁሟል" : "Flagged for our check")}</span>}
           <p>{r.body}</p>
           <form action={replyReview} className="field">
-            <input type="hidden" name="token" value={token} />
             <input type="hidden" name="reviewId" value={r.id} />
             <textarea name="reply" defaultValue={r.vendor_reply ?? ""} placeholder={am ? "መልስዎ (በይፋ ይታያል)" : "Your public reply"} style={{ minHeight: 60 }} />
             <button className="btn small" type="submit">{am ? "መልስ አስቀምጥ" : "Save reply"}</button>
@@ -171,7 +179,6 @@ export default async function Manage({ params, searchParams }: { params: Params;
             <details className="more">
               <summary className="small">{am ? "ለማጣራት ጠቁም" : "Flag for our check"}</summary>
               <form action={flagReview} className="row">
-                <input type="hidden" name="token" value={token} />
                 <input type="hidden" name="reviewId" value={r.id} />
                 <input type="text" name="reason" placeholder={am ? "ምክንያት" : "Why? e.g. not my client"} style={{ flex: 1 }} />
                 <button className="btn small danger" type="submit">{am ? "ጠቁም" : "Flag"}</button>
@@ -197,14 +204,12 @@ export default async function Manage({ params, searchParams }: { params: Params;
                 : (am ? "ከላይ \"ስፖንሰር\" ቦታ በዘርፍና ክፍለ ከተማ፣ በመነሻ ገጽ ላይ፣ 80 ፎቶዎች።" : "Top \"Sponsored\" slots in your category and sub-city, homepage picks, 80 photos.")}
             </p>
             {plan === "pro" && foundingAvailable && (
-              <form action={requestPlan}>
-                <input type="hidden" name="token" value={token} /><input type="hidden" name="plan" value="pro" /><input type="hidden" name="term" value="founding" />
+              <form action={requestPlan}><input type="hidden" name="plan" value="pro" /><input type="hidden" name="term" value="founding" />
                 <button className="btn primary block" type="submit" disabled={!!pendingRequest}>🎁 {am ? "የመስራች ቅናሽ፦ 3 ወር ነጻ" : "Founding offer: 3 months free"}</button>
               </form>
             )}
             {(["month", "season", "year"] as const).map((term) => (
-              <form key={term} action={requestPlan}>
-                <input type="hidden" name="token" value={token} /><input type="hidden" name="plan" value={plan} /><input type="hidden" name="term" value={term} />
+              <form key={term} action={requestPlan}><input type="hidden" name="plan" value={plan} /><input type="hidden" name="term" value={term} />
                 <button className="btn block" type="submit" disabled={!!pendingRequest}>
                   {term === "month" ? (am ? "ወርሃዊ" : "Monthly") : term === "season" ? (am ? "የሰርግ ወቅት (3 ወር)" : "Wedding season (3 months)") : (am ? "ዓመታዊ" : "Yearly")} · {etb(PRICES[plan][term], lang)}
                 </button>

@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <div className="wrap stack">
             <p>{t("footer")}</p>
             <p className="row">
-              <Link href="/join">{t("listBusiness")}</Link> · <Link href="/pricing">Pro &amp; Featured</Link> · <Link href="/admin">Admin</Link>
+              <Link href="/join">{t("listBusiness")}</Link> · <Link href="/manage/login">{t("vendorSignIn")}</Link> · <Link href="/pricing">Pro &amp; Featured</Link> · <Link href="/admin">Admin</Link>
             </p>
           </div>
         </footer>

@@ -14,8 +14,8 @@ A free, commission-free directory of event vendors in Addis Ababa. Clients find 
 - Amharic and English throughout (toggle in the header). Share to Telegram/WhatsApp. SEO metadata and schema.org data on vendor pages.
 
 **Vendors**
-- Sign up from a category template at `/join` (no account needed in v1).
-- A private management link (`/manage/<token>`): edit profile, upload photos (compressed to WebP automatically), mark busy dates, reply to and flag reviews, see stats (views for Free; contact taps and search appearances for Pro; category comparison for Featured), request Pro or Featured, or claim the founding offer (first 100 vendors: Pro free for 3 months).
+- Sign up from a category template at `/join`. Signing up signs you in; an email address is the only account there is.
+- Sign in with a link emailed to them (no password), then at `/manage`: edit profile, upload photos (compressed to WebP automatically), mark busy dates, reply to and flag reviews, see stats (views for Free; contact taps and search appearances for Pro; category comparison for Featured), request Pro or Featured, or claim the founding offer (first 100 vendors: Pro free for 3 months).
 - Plan limits enforced: photos, videos, packages, premium looks.
 
 **Admin** (`/admin`)
@@ -28,7 +28,7 @@ A free, commission-free directory of event vendors in Addis Ababa. Clients find 
 
 ## Not in v1 yet
 
-- SMS login (vendors use a private link, admin uses one shared password).
+- SMS login. Vendors sign in by email; admin still uses one shared password.
 - Chapa API and webhook (payments are recorded by hand, which matches the pilot plan).
 - Save and compare shortlists, in-app messages.
 - SMS reminders before a plan expires (the admin page lists who to remind).
@@ -66,6 +66,8 @@ build time):
 | `ADMIN_PASSWORD` | Likewise. |
 | `SUPABASE_URL` | `https://<project-ref>.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only. Never expose it to the browser. |
+| `RESEND_API_KEY` | Sends vendor sign-in links. Needs a verified domain to reach real addresses. |
+| `MAIL_FROM` | e.g. `Dir Moments <login@yourdomain.com>` |
 
 ### The direct database connection does not work on serverless hosts
 
@@ -93,7 +95,7 @@ these constraints.
 Try it:
 - Home: `/`, search: `/vendors?category=photographer&subcity=bole`
 - A Featured profile: `/v/afro-addis-band`
-- A vendor's private page: `/manage/demo-lucy-lens-studio` (seeded vendors use `demo-<slug>` tokens)
+- Vendor sign-in: `/manage/login` (seeded vendors use `<slug>@example.com`). Old `/manage/<token>` links still work and swap themselves for a session
 - Admin: `/admin`, password from `ADMIN_PASSWORD`
 
 All seeded vendors, phone numbers and reviews are made up. Photos are generated placeholders.

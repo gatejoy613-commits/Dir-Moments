@@ -17,6 +17,7 @@ export type VendorRow = {
   bio_am: string;
   sections: Record<string, { en?: string; am?: string; tags?: string[] }>;
   phone: string;
+  email: string | null;
   telegram: string | null;
   whatsapp: string | null;
   starting_price: number | null;
