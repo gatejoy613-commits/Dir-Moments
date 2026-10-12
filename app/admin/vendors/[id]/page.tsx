@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/accounts";
 import { adminCounts } from "@/lib/adminData";
 import { assignSlot, cancelSubscription, grantSubscription, setVendorStatus, setVerified, updateVendorAdmin } from "@/lib/adminActions";
 import { category } from "@/lib/catalog";

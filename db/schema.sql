@@ -143,6 +143,22 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- Accounts. Supabase Auth owns the credential (auth.users: email, password
+-- hash, confirmation and reset tokens). This table owns what the app needs to
+-- know about that person: which of the three roles they hold.
+--
+-- No foreign key to auth.users: it lives in another schema that the app role
+-- cannot always reference, and a dangling profile is harmless - every lookup
+-- starts from a verified session, never from this table.
+CREATE TABLE IF NOT EXISTS profiles (
+  id          UUID PRIMARY KEY,
+  email       TEXT NOT NULL,
+  name        TEXT,
+  role        TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer','vendor','admin')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS profiles_email_idx ON profiles (lower(email));
+
 -- 2026-10: vendors sign in by email instead of carrying a secret link.
 ALTER TABLE vendors ADD COLUMN IF NOT EXISTS email TEXT;
 DO $$ BEGIN
@@ -153,3 +169,9 @@ DO $$ BEGIN
     ALTER TABLE vendors ADD CONSTRAINT vendors_email_key UNIQUE (email);
   END IF;
 END $$;
+
+-- 2026-11: accounts with roles. A vendor row belongs to the account that
+-- created it; a review remembers who left it.
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS user_id UUID;
+CREATE INDEX IF NOT EXISTS vendors_user_idx ON vendors (user_id);

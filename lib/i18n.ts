@@ -106,7 +106,8 @@ const DICT = {
   inAddis: { en: "in Addis Ababa", am: "በአዲስ አበባ" },
   browseAll: { en: "See all vendors", am: "ሁሉንም ባለሙያዎች ይመልከቱ" },
   noResultsTitle: { en: "Nothing matches yet", am: "እስካሁን ምንም አልተገኘም" },
-  vendorSignIn: { en: "Vendor sign-in", am: "የባለሙያ መግቢያ" },
+  signIn: { en: "Sign in", am: "ግባ" },
+  account: { en: "Account", am: "አካውንት" },
 } satisfies Record<string, L>;
 
 export type DictKey = keyof typeof DICT;

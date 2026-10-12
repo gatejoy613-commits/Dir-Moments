@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/accounts";
 import { adminCounts } from "@/lib/adminData";
 import { activateSubscription, cancelSubscription } from "@/lib/adminActions";
 import { q } from "@/lib/db";

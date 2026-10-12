@@ -1,13 +1,15 @@
 import type { Lang } from "./catalog";
 
 // Transactional email through Resend's REST API with fetch, rather than their
-// SDK: this is the only message the app ever sends, and the project runs on
-// five dependencies.
+// SDK: the app sends one kind of message and the project runs on five
+// dependencies.
 //
-// Supabase's own auth mailer is not an option here - it sends at most two
-// emails an hour for the whole project and only to members of the Supabase
-// organisation. It is a testing facility, not something vendors can sign in
-// through.
+// Password resets go through here rather than through Supabase Auth's own
+// mailer, for two reasons. Supabase's built-in sender allows two emails an hour
+// for the whole project and only to members of the Supabase organisation. And
+// its reset link carries the token in the URL fragment, which a server cannot
+// read without client-side JavaScript or a reconfigured dashboard template -
+// while this app needs the copy in two languages, in one place.
 
 const API = "https://api.resend.com/emails";
 
@@ -16,34 +18,34 @@ function config() {
   const from = process.env.MAIL_FROM;
   if (!key || !from) {
     // A missing mailer is a deployment mistake, not a bad address. Say so once,
-    // loudly, rather than telling every vendor to check an inbox nothing was
-    // ever sent to.
-    throw new Error("RESEND_API_KEY and MAIL_FROM must be set to send sign-in links. See .env.example.");
+    // loudly, rather than pointing people at an inbox nothing was sent to.
+    throw new Error("RESEND_API_KEY and MAIL_FROM must be set to send email. See .env.example.");
   }
   return { key, from };
 }
 
-const COPY: Record<Lang, (url: string, name: string) => { subject: string; heading: string; body: string; button: string; footer: string }> = {
-  en: (url, name) => ({
-    subject: "Your Dir Moments sign-in link",
-    heading: `Sign in to ${name}`,
-    body: "Tap the button to manage your listing. The link works once and expires in 30 minutes.",
-    button: "Open my listing",
-    footer: "If you did not ask for this, you can ignore this email - nobody can reach your listing without the link.",
+type Words = { subject: string; heading: string; body: string; button: string; footer: string };
+
+const RESET: Record<Lang, (name: string) => Words> = {
+  en: (name) => ({
+    subject: "Reset your Dir Moments password",
+    heading: "Reset your password",
+    body: `Someone asked to reset the password for ${name}. Choose a new one below. The link expires in an hour.`,
+    button: "Choose a new password",
+    footer: "If this was not you, ignore this email. Your password has not changed.",
   }),
-  am: (url, name) => ({
-    subject: "የዲር ሞመንትስ መግቢያ ሊንክ",
-    heading: `ወደ ${name} ይግቡ`,
-    body: "መገለጫዎን ለማስተካከል ከታች ያለውን ይንኩ። ሊንኩ በ30 ደቂቃ ውስጥ ጊዜው ያበቃል።",
-    button: "መገለጫዬን ክፈት",
-    footer: "ይህንን ካልጠየቁ ይህን መልእክት ችላ ይበሉት።",
+  am: (name) => ({
+    subject: "የይለፍ ቃልዎን ይቀይሩ",
+    heading: "የይለፍ ቃል ይቀይሩ",
+    body: `ለ${name} የይለፍ ቃል ለመቀየር ጥያቄ ደርሶናል። አዲስ ለመምረጥ ከታች ይንኩ። ሊንኩ በአንድ ሰዓት ውስጥ ጊዜው ያበቃል።`,
+    button: "አዲስ የይለፍ ቃል ይምረጡ",
+    footer: "እርስዎ ካልጠየቁ ይህን መልእክት ችላ ይበሉት። የይለፍ ቃልዎ አልተቀየረም።",
   }),
 };
 
-function render(url: string, name: string, lang: Lang) {
-  const t = COPY[lang](url, name);
-  // Inline styles and a plain-text part: every mail client strips stylesheets,
-  // and some vendors will read this on a phone with images off.
+function render(url: string, lang: Lang, t: Words) {
+  // Inline styles and a plain-text part: mail clients strip stylesheets, and
+  // plenty of people will read this on a phone with images off.
   const html = `<!doctype html>
 <html lang="${lang}"><body style="margin:0;padding:24px;background:#faf8f5;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Ethiopic',sans-serif;color:#1d1b19">
   <div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e7e1d9;border-radius:14px;padding:28px">
@@ -58,13 +60,13 @@ function render(url: string, name: string, lang: Lang) {
 }
 
 /**
- * Sends a sign-in link. Returns false if the message could not be handed to
- * Resend, so the caller can say something honest rather than sending the vendor
- * to an inbox that will stay empty.
+ * Sends a password reset link. Returns false if the message could not be handed
+ * to Resend, so the caller can say something honest rather than claiming to
+ * have sent mail that never left.
  */
-export async function sendLoginLink(to: string, url: string, vendorName: string, lang: Lang): Promise<boolean> {
+export async function sendPasswordReset(to: string, url: string, name: string, lang: Lang): Promise<boolean> {
   const { key, from } = config();
-  const { subject, html, text } = render(url, vendorName, lang);
+  const { subject, html, text } = render(url, lang, RESET[lang](name));
   try {
     const res = await fetch(API, {
       method: "POST",
@@ -72,7 +74,7 @@ export async function sendLoginLink(to: string, url: string, vendorName: string,
       body: JSON.stringify({ from, to, subject, html, text }),
     });
     if (!res.ok) {
-      console.error("Resend rejected the sign-in email:", res.status, await res.text().catch(() => ""));
+      console.error("Resend rejected the email:", res.status, await res.text().catch(() => ""));
       return false;
     }
     return true;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/accounts";
 import { adminCounts } from "@/lib/adminData";
 import { setVendorStatus, setVerified } from "@/lib/adminActions";
 import { category } from "@/lib/catalog";

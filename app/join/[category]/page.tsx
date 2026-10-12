@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { category } from "@/lib/catalog";
 import { i18n } from "@/lib/i18n";
 import { saveVendorForm } from "@/lib/vendorForm";
-import { setVendorSession } from "@/lib/auth";
+import { requireRole } from "@/lib/accounts";
 import { formError } from "@/lib/formErrors";
 import { VendorForm } from "@/components/VendorForm";
 
@@ -10,12 +10,13 @@ type Params = Promise<{ category: string }>;
 
 async function create(fd: FormData) {
   "use server";
-  const res = await saveVendorForm(fd, null);
+  // The listing belongs to the account that creates it; that is what makes
+  // "edit your own listing only" true later.
+  const me = await requireRole("vendor", "admin");
+  const res = await saveVendorForm(fd, null, me.id);
   const cat = String(fd.get("category"));
   if (!res.ok) redirect(`/join/${cat}?error=${res.error}`);
   const n = res.notices.length ? `&notices=${encodeURIComponent(res.notices.join(","))}` : "";
-  // Signing up signs you in. Nothing to bookmark, nothing to lose.
-  await setVendorSession(res.vendorId);
   redirect(`/manage?welcome=1${n}`);
 }
 
@@ -24,6 +25,7 @@ export default async function JoinCategory({ params, searchParams }: { params: P
   const { error } = await searchParams;
   const cat = category(key);
   if (!cat) notFound();
+  await requireRole("vendor", "admin");
   const { lang } = await i18n();
   return (
     <div style={{ marginTop: "1rem" }}>

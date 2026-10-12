@@ -14,7 +14,7 @@ export type SaveResult =
 const MAX_PACKAGE_ROWS = 12;
 
 /** Creates or updates a vendor from the template-driven profile form. */
-export async function saveVendorForm(fd: FormData, existing: VendorRow | null): Promise<SaveResult> {
+export async function saveVendorForm(fd: FormData, existing: VendorRow | null, ownerId?: string): Promise<SaveResult> {
   const cat = existing?.category ?? str(fd.get("category"));
   const tpl = template(cat);
   if (!tpl || !category(cat)) return { ok: false, error: "category" };
@@ -95,9 +95,9 @@ export async function saveVendorForm(fd: FormData, existing: VendorRow | null): 
       for (let n = 2; (await client.query("SELECT 1 FROM vendors WHERE slug = $1", [slug])).rowCount; n++) slug = `${base}-${n}`;
       token = newManageToken();
       const r = await client.query(
-        `INSERT INTO vendors (name, name_am, look, bio, bio_am, sections, phone, email, telegram, whatsapp, starting_price, category, slug, manage_token)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
-        [...values, cat, slug, token],
+        `INSERT INTO vendors (name, name_am, look, bio, bio_am, sections, phone, email, telegram, whatsapp, starting_price, category, slug, manage_token, user_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
+        [...values, cat, slug, token, ownerId ?? null],
       );
       vendorId = r.rows[0].id;
     }

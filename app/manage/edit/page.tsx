@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { i18n } from "@/lib/i18n";
-import { currentVendorId } from "@/lib/auth";
+import { currentVendorId, requireRole } from "@/lib/accounts";
 import { vendorBy, vendorDetail } from "@/lib/vendors";
 import { saveVendorForm } from "@/lib/vendorForm";
 import { formError } from "@/lib/formErrors";
@@ -12,9 +12,10 @@ export const metadata = { title: "Edit profile", robots: { index: false } };
 
 /** Whose listing this is comes from the session, never from the request. */
 async function currentVendor() {
+  await requireRole("vendor", "admin");
   const id = await currentVendorId();
   const v = id ? await vendorBy("id", id) : null;
-  if (!v) redirect("/manage/login");
+  if (!v) redirect("/join");
   return v;
 }
 

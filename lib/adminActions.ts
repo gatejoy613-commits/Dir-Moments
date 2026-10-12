@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { one, q } from "./db";
-import { adminLogin, adminLogout, requireAdmin } from "./auth";
+import { requireAdmin } from "./accounts";
 import { addDays, todayAddis } from "./ethiopian";
 import { SLOTS_PER_CATEGORY, TERM_DAYS } from "./tiers";
 import { str } from "./util";
@@ -11,16 +11,6 @@ import { str } from "./util";
 function back(fd: FormData, fallback: string) {
   const to = str(fd.get("back"));
   redirect(to.startsWith("/admin") ? to : fallback);
-}
-
-export async function login(fd: FormData) {
-  const ok = await adminLogin(str(fd.get("password")));
-  redirect(ok ? "/admin" : "/admin/login?error=1");
-}
-
-export async function logout() {
-  await adminLogout();
-  redirect("/");
 }
 
 export async function setVendorStatus(fd: FormData) {

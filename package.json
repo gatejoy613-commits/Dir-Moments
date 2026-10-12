@@ -11,7 +11,8 @@
     "db:seed": "tsx --env-file=.env scripts/seed.ts",
     "db:reset": "npm run db:migrate && npm run db:seed",
     "storage:setup": "tsx --env-file=.env scripts/setup-storage.ts",
-    "test": "tsx scripts/check-calendar.ts"
+    "test": "tsx scripts/check-calendar.ts",
+    "make-admin": "tsx --env-file=.env scripts/make-admin.ts"
   },
   "dependencies": {
     "next": "^15.5.27",

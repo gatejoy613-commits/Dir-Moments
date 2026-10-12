@@ -6,7 +6,7 @@ import { etb, i18n } from "@/lib/i18n";
 import { addDays, dualDate, todayAddis } from "@/lib/ethiopian";
 import { completeness, vendorBy, vendorDetail, vendorStats } from "@/lib/vendors";
 import { one, q } from "@/lib/db";
-import { currentVendorId, vendorLogout } from "@/lib/auth";
+import { currentVendorId, requireRole } from "@/lib/accounts";
 import { FOUNDING_VENDOR_LIMIT, PRICES, TIERS } from "@/lib/tiers";
 import { noticeText } from "@/lib/formErrors";
 import { str } from "@/lib/util";
@@ -22,9 +22,10 @@ export const metadata: Metadata = { title: "Your profile", robots: { index: fals
  * cannot act on someone else's profile.
  */
 async function currentVendor() {
+  await requireRole("vendor", "admin");
   const id = await currentVendorId();
   const v = id ? await vendorBy("id", id) : null;
-  if (!v) redirect("/manage/login");
+  if (!v) redirect("/join");
   return v;
 }
 
@@ -51,12 +52,6 @@ async function flagReview(fd: FormData) {
   await q("UPDATE reviews SET status = 'flagged', flag_reason = $1 WHERE id = $2 AND vendor_id = $3 AND status = 'published'",
     [str(fd.get("reason")).slice(0, 500) || "No reason given", Number(fd.get("reviewId")), v.id]);
   redirect(`/manage#reviews`);
-}
-
-async function signOut() {
-  "use server";
-  await vendorLogout();
-  redirect("/");
 }
 
 async function requestPlan(fd: FormData) {
@@ -123,7 +118,7 @@ export default async function Manage({ searchParams }: { searchParams: Promise<R
         <div className="row">
           <Link className="btn" href={`/v/${v.slug}?preview=${v.manage_token}`}>{am ? "መገለጫውን እይ" : "View profile"}</Link>
           <Link className="btn primary" href="/manage/edit">{am ? "አስተካክል" : "Edit profile"}</Link>
-          <form action={signOut}><button className="btn small" type="submit">{am ? "ውጣ" : "Sign out"}</button></form>
+          <form action="/account/signout" method="post"><button className="btn small" type="submit">{am ? "ውጣ" : "Sign out"}</button></form>
         </div>
       </div>
 

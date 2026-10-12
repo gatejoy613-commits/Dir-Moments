@@ -2,6 +2,8 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { i18n } from "@/lib/i18n";
+import { currentProfile } from "@/lib/accounts";
+import { homeFor } from "@/lib/roles";
 
 export const metadata: Metadata = {
   title: { default: "Dir Moments: find event vendors in Addis Ababa", template: "%s · Dir Moments" },
@@ -12,6 +14,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { lang, t } = await i18n();
+  const me = await currentProfile();
   return (
     <html lang={lang}>
       <body>
@@ -21,6 +24,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav className="nav">
               <Link href="/vendors">{t("browse")}</Link>
               <Link href="/join" className="hide-sm">{t("listBusiness")}</Link>
+              {me
+                ? <Link href={homeFor(me.role)}>{me.name || t("account")}</Link>
+                : <Link href="/account/signin">{t("signIn")}</Link>}
               <a className="lang" href={`/lang?to=${lang === "am" ? "en" : "am"}`} hrefLang={lang === "am" ? "en" : "am"}>
                 {lang === "am" ? "English" : "አማርኛ"}
               </a>
@@ -32,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <div className="wrap stack">
             <p>{t("footer")}</p>
             <p className="row">
-              <Link href="/join">{t("listBusiness")}</Link> · <Link href="/manage/login">{t("vendorSignIn")}</Link> · <Link href="/pricing">Pro &amp; Featured</Link> · <Link href="/admin">Admin</Link>
+              <Link href="/join">{t("listBusiness")}</Link> · <Link href="/pricing">Pro &amp; Featured</Link> · <Link href="/admin">Admin</Link>
             </p>
           </div>
         </footer>
