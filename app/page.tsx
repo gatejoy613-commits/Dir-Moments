@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORIES, SUBCITIES } from "@/lib/catalog";
+import { CATEGORIES, EVENT_TYPES, SUBCITIES, occasionCategories } from "@/lib/catalog";
 import { i18n } from "@/lib/i18n";
 import { FOUNDING_VENDOR_LIMIT } from "@/lib/tiers";
 import { categoryCounts, homepagePicks, recentlyVerified, siteStats } from "@/lib/vendors";
@@ -21,6 +21,7 @@ export default async function Home() {
   return (
     <>
       <section className="hero">
+        <p className="eyebrow">{t("heroEyebrow")}</p>
         <h1>{t("heroTitle")}</h1>
         <p className="lede">{t("heroLede")}</p>
         <ul className="value-props">
@@ -42,10 +43,25 @@ export default async function Home() {
         </div>
       )}
 
+      <h2>{t("occasionsTitle")}</h2>
+      <p className="muted small">{t("occasionsLede")}</p>
+      <div className="occasions">
+        {EVENT_TYPES.map((e) => {
+          const n = occasionCategories(e.key).reduce((sum, k) => sum + (counts[k] ?? 0), 0);
+          return (
+            <Link key={e.key} href={`/vendors?occasion=${e.key}`} className="occasion">
+              <span className="icon">{e.icon}</span>
+              <span className="label">{e.name[lang]}</span>
+              <span className="n">{n}</span>
+            </Link>
+          );
+        })}
+      </div>
+
       <h2>{t("categories")}</h2>
       <div className="cat-grid">
         {CATEGORIES.map((c) => (
-          <Link key={c.key} href={`/vendors?category=${c.key}`} className="cat">
+          <Link key={c.key} href={`/vendors?category=${c.key}`} className="cat" style={{ background: c.tint }}>
             <span className="icon">{c.icon}</span>
             <span>{c.name[lang]}<span className="n">{counts[c.key] ?? 0}</span></span>
           </Link>

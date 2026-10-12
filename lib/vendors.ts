@@ -1,5 +1,6 @@
 import { q, one } from "./db";
 import { template } from "./templates";
+import { occasionCategories } from "./catalog";
 import { todayAddis } from "./ethiopian";
 import {
   type Plan, SPONSORED_PER_PAGE, SPONSOR_MIN_RATING, SPONSOR_MAX_NO_SHOWS,
@@ -90,6 +91,8 @@ function dailyRotate<T extends { id: number }>(items: T[], salt: string) {
 
 export type SearchParams = {
   category?: string;
+  /** A client-facing occasion (wedding, graduation...). Widens to the categories booked for it. */
+  occasion?: string;
   subcity?: string;
   date?: string;
   minRating?: number;
@@ -130,6 +133,10 @@ export async function searchVendors(p: SearchParams) {
   const params: unknown[] = [today];
   const where = ["v.status = 'approved'"];
   if (p.category) { params.push(p.category); where.push(`v.category = $${params.length}`); }
+  else if (p.occasion) {
+    const cats = occasionCategories(p.occasion);
+    if (cats.length) { params.push(cats); where.push(`v.category = ANY($${params.length})`); }
+  }
   if (p.subcity) { params.push(p.subcity); where.push(`$${params.length} = ANY(v.subcities)`); }
   if (p.date) {
     params.push(p.date);

@@ -3,13 +3,14 @@ import { CATEGORIES, SUBCITIES } from "@/lib/catalog";
 import { translator } from "@/lib/i18n";
 import { dualDate } from "@/lib/ethiopian";
 
-export type Filters = { category?: string; subcity?: string; date?: string; q?: string; maxPrice?: string; minRating?: string; verified?: string };
+export type Filters = { occasion?: string; category?: string; subcity?: string; date?: string; q?: string; maxPrice?: string; minRating?: string; verified?: string };
 
 export function SearchForm({ f, lang, compact }: { f: Filters; lang: Lang; compact?: boolean }) {
   const t = translator(lang);
   const advanced = !!(f.maxPrice || f.minRating || f.verified || f.q);
   return (
     <form action="/vendors" method="get" className="card">
+      {f.occasion && <input type="hidden" name="occasion" value={f.occasion} />}
       <div className="filters">
         <div className="field">
           <label htmlFor="category">{t("categories")}</label>

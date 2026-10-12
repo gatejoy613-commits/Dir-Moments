@@ -10,7 +10,10 @@
   --gold: #b7862b;
   --danger: #b3261e;
   --sponsor: #8a5a00;
-  --radius: 12px;
+  --radius: 14px;
+  /* Warm-tinted, not neutral grey: keeps the page feeling lit rather than printed. */
+  --shadow: 0 1px 2px rgba(74, 55, 35, .04), 0 6px 16px rgba(74, 55, 35, .05);
+  --shadow-lift: 0 2px 6px rgba(74, 55, 35, .07), 0 12px 24px rgba(74, 55, 35, .08);
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Ethiopic", "Nyala", "Abyssinica SIL", sans-serif;
 }
 
@@ -65,14 +68,14 @@ textarea { min-height: 90px; }
 .notice.error { background: #fdeceb; border-color: #f2c9c5; }
 
 /* Cards */
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
 .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .cat-grid { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-.cat { display: flex; gap: .6rem; align-items: center; padding: .8rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); text-decoration: none; color: var(--text); font-weight: 600; }
+.cat { display: flex; gap: .6rem; align-items: center; padding: .85rem; background: var(--surface); border: 1px solid rgba(29, 27, 25, .07); border-radius: var(--radius); text-decoration: none; color: var(--text); font-weight: 600; box-shadow: var(--shadow); }
 .cat .icon { font-size: 1.4rem; }
 .cat .n { color: var(--muted); font-weight: 400; font-size: .8rem; display: block; }
 
-.vcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; color: var(--text); display: flex; flex-direction: column; }
+.vcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; color: var(--text); display: flex; flex-direction: column; box-shadow: var(--shadow); }
 .vcard .img { aspect-ratio: 4/3; background: #eee center/cover no-repeat; position: relative; }
 .vcard .body { padding: .75rem .9rem 1rem; }
 .vcard .name { font-weight: 700; }
@@ -82,15 +85,40 @@ textarea { min-height: 90px; }
 .tag.plan { color: var(--gold); border-color: #ead7ae; }
 .stars { color: #e0a100; letter-spacing: 1px; }
 
-/* Landing */
+/* Landing. Clients arrive planning a celebration, so the page opens warm:
+   a gold-to-blush wash with scattered confetti. Both are gradients, which
+   costs no extra request and no image bytes on a slow connection. */
 .hero {
-  padding: 1.75rem 1.1rem 1.5rem; margin-bottom: 1rem;
-  border: 1px solid var(--line); border-radius: var(--radius);
-  background: linear-gradient(160deg, #eef7f3 0%, var(--surface) 70%);
+  position: relative; overflow: hidden;
+  padding: 2rem 1.1rem 1.75rem; margin-bottom: 1rem;
+  border: 1px solid #f2e5d6; border-radius: 18px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(183, 134, 43, .14) 0 6px, transparent 7px),
+    radial-gradient(circle at 88% 12%, rgba(194, 65, 12, .11) 0 5px, transparent 6px),
+    radial-gradient(circle at 77% 70%, rgba(15, 110, 90, .11) 0 7px, transparent 8px),
+    radial-gradient(circle at 27% 86%, rgba(183, 134, 43, .11) 0 4px, transparent 5px),
+    radial-gradient(circle at 55% 6%, rgba(194, 65, 12, .09) 0 3px, transparent 4px),
+    radial-gradient(circle at 40% 62%, rgba(183, 134, 43, .08) 0 3px, transparent 4px),
+    linear-gradient(165deg, #fdf4e8 0%, #fdeff1 44%, var(--surface) 100%);
 }
+.hero .eyebrow { font-size: .8rem; font-weight: 700; color: var(--gold); margin-bottom: .45rem; }
 .hero h1 { font-size: 1.75rem; max-width: 18ch; }
 .hero .lede { color: var(--muted); max-width: 56ch; margin-bottom: 1rem; }
-@media (min-width: 720px) { .hero { padding: 2.5rem 2rem; } .hero h1 { font-size: 2.3rem; } }
+@media (min-width: 720px) { .hero { padding: 2.75rem 2rem; } .hero h1 { font-size: 2.3rem; } }
+
+/* Occasions: the question clients actually arrive with. */
+.occasions { display: grid; gap: .6rem; grid-template-columns: repeat(2, 1fr); margin-bottom: .5rem; }
+@media (min-width: 560px) { .occasions { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 880px) { .occasions { grid-template-columns: repeat(6, 1fr); } }
+.occasion {
+  display: flex; flex-direction: column; align-items: center; gap: .1rem; text-align: center;
+  padding: .95rem .5rem; border-radius: 16px; text-decoration: none; color: var(--text);
+  border: 1px solid #f2e5d6; box-shadow: var(--shadow);
+  background: linear-gradient(170deg, #fdf5ea 0%, var(--surface) 85%);
+}
+.occasion .icon { font-size: 1.7rem; line-height: 1.25; }
+.occasion .label { font-weight: 700; font-size: .9rem; }
+.occasion .n { font-size: .75rem; color: var(--muted); }
 
 .value-props { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; margin: 0; padding: 0; }
 .value-props li {
@@ -102,7 +130,7 @@ textarea { min-height: 90px; }
 /* Live counts: proof the directory is not empty. */
 .statbar { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; margin: 1rem 0 .5rem; }
 @media (min-width: 560px) { .statbar { grid-template-columns: repeat(4, 1fr); } }
-.statbar div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: .65rem .75rem; text-align: center; }
+.statbar div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: .65rem .75rem; text-align: center; box-shadow: var(--shadow); }
 .statbar b { display: block; font-size: 1.4rem; font-weight: 800; line-height: 1.15; }
 .statbar span { font-size: .78rem; color: var(--muted); }
 
@@ -111,7 +139,7 @@ textarea { min-height: 90px; }
 .steps li {
   counter-increment: step; position: relative;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: .9rem 1rem .9rem 3rem;
+  padding: .9rem 1rem .9rem 3rem; box-shadow: var(--shadow);
 }
 .steps li::before {
   content: counter(step); position: absolute; left: .9rem; top: .95rem;
@@ -195,3 +223,14 @@ th, td { text-align: left; padding: .5rem; border-bottom: 1px solid var(--line);
 .progress > div { height: 100%; background: var(--accent); }
 fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; margin: 0 0 1rem; background: var(--surface); }
 legend { font-weight: 700; padding: 0 .4rem; }
+
+/* A small lift on tap targets. Pointer devices only, and off for anyone who
+   has asked the system for reduced motion. */
+@media (hover: hover) {
+  .cat, .occasion, .vcard { transition: transform .15s ease, box-shadow .15s ease; }
+  .cat:hover, .occasion:hover, .vcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cat, .occasion, .vcard { transition: none; }
+  .cat:hover, .occasion:hover, .vcard:hover { transform: none; }
+}

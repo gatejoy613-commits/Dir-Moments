@@ -98,6 +98,12 @@ const DICT = {
   joinTitle: { en: "Are you an event vendor?", am: "የዝግጅት ባለሙያ ነዎት?" },
   foundingOffer: { en: "Founding offer: the first 100 vendors get Pro free for 3 months", am: "የመስራች ቅናሽ፦ የመጀመሪያዎቹ 100 ባለሙያዎች ፕሮን ለ3 ወር በነጻ" },
   placesLeft: { en: "places left", am: "ቦታዎች ቀርተዋል" },
+
+  // Occasions. Clients arrive planning a wedding, not shopping for a videographer.
+  heroEyebrow: { en: "Weddings, engagements, graduations and every celebration in between", am: "ሰርግ፣ ቀለበት፣ ምረቃ እና ሌሎች ክብረ በዓላት" },
+  occasionsTitle: { en: "What are you celebrating?", am: "ምን እያከበሩ ነው?" },
+  occasionsLede: { en: "Start with the day you are planning and we will show the people who make it happen.", am: "እያቀዱት ባለው ዝግጅት ይጀምሩ፤ የሚያስፈልጉዎትን ባለሙያዎች እናሳይዎታለን።" },
+  occasionNote: { en: "The vendors people usually book for this celebration.", am: "ለዚህ ክብረ በዓል አብዛኛውን ጊዜ የሚፈለጉ ባለሙያዎች።" },
 } satisfies Record<string, L>;
 
 export type DictKey = keyof typeof DICT;

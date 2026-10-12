@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { category, subcityName } from "@/lib/catalog";
+import { EVENT_TYPES, category, subcityName } from "@/lib/catalog";
 import { i18n } from "@/lib/i18n";
 import { dualDate } from "@/lib/ethiopian";
 import { searchVendors } from "@/lib/vendors";
@@ -14,8 +14,10 @@ type SP = Promise<Record<string, string | undefined>>;
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
   const sp = await searchParams;
   const c = category(sp.category ?? "");
+  const occ = EVENT_TYPES.find((e) => e.key === sp.occasion);
+  const what = c ? c.name.en : occ ? `${occ.name.en} vendors` : "Event vendors";
   const where = sp.subcity ? ` in ${subcityName(sp.subcity, "en")}` : " in Addis Ababa";
-  return { title: `${c ? c.name.en : "Event vendors"}${where}` };
+  return { title: `${what}${where}` };
 }
 
 export default async function VendorsPage({ searchParams }: { searchParams: SP }) {
@@ -24,6 +26,7 @@ export default async function VendorsPage({ searchParams }: { searchParams: SP }
   const date = sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : undefined;
   const { sponsored, results, total, page, pages } = await searchVendors({
     category: category(sp.category ?? "") ? sp.category : undefined,
+    occasion: EVENT_TYPES.some((e) => e.key === sp.occasion) ? sp.occasion : undefined,
     subcity: sp.subcity || undefined,
     date,
     q: sp.q?.trim() || undefined,
@@ -33,6 +36,7 @@ export default async function VendorsPage({ searchParams }: { searchParams: SP }
     page: Number(sp.page) || 1,
   });
   const c = category(sp.category ?? "");
+  const occ = EVENT_TYPES.find((e) => e.key === sp.occasion);
   const pageLink = (p: number) => {
     const u = new URLSearchParams(Object.entries(sp).filter(([, v]) => v) as [string, string][]);
     u.set("page", String(p));
@@ -41,9 +45,10 @@ export default async function VendorsPage({ searchParams }: { searchParams: SP }
   return (
     <>
       <h1 style={{ marginTop: "1rem" }}>
-        {c ? `${c.icon} ${c.name[lang]}` : t("allCategories")}
+        {c ? `${c.icon} ${c.name[lang]}` : occ ? `${occ.icon} ${occ.name[lang]}` : t("allCategories")}
         {sp.subcity ? ` · ${subcityName(sp.subcity, lang)}` : ""}
       </h1>
+      {!c && occ && <p className="muted small">{t("occasionNote")}</p>}
       <SearchForm f={sp as Filters} lang={lang} compact />
       <p className="muted small" style={{ marginTop: ".75rem" }}>
         {total + sponsored.length} {t("results")}
