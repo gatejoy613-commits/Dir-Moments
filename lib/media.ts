@@ -79,3 +79,34 @@ export async function savePhoto(file: File): Promise<string | null> {
   }
   return publicUrl(name);
 }
+
+/**
+ * Removes an object this app uploaded. Best effort and deliberately quiet:
+ * anything that is not one of our bucket URLs (a seeded /ph placeholder, an
+ * external link) is ignored, and a failure is logged rather than thrown. An
+ * orphaned file is a smaller problem than a photo a vendor cannot remove.
+ *
+ * Note the public URL may keep serving from the CDN edge after this returns.
+ * Objects are written with `immutable` and never rewritten, so the edge holds
+ * them; the file itself is gone from storage and stops counting against quota.
+ */
+export async function deletePhoto(url: string): Promise<void> {
+  const base = process.env.SUPABASE_URL?.replace(/\/+$/, "");
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!base || !key) return;
+
+  const prefix = `${base}/storage/v1/object/public/${BUCKET}/`;
+  if (!url.startsWith(prefix)) return;
+  const name = url.slice(prefix.length);
+  if (!/^[a-z0-9-]+\.webp$/.test(name)) return;
+
+  try {
+    const res = await fetch(`${base}/storage/v1/object/${BUCKET}/${name}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    if (!res.ok) console.error("Could not delete stored photo:", res.status, name);
+  } catch (e) {
+    console.error("Could not reach Supabase to delete stored photo:", e);
+  }
+}

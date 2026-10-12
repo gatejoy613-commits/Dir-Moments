@@ -2,7 +2,7 @@ import { pool } from "./db";
 import { category } from "./catalog";
 import { template, LOOKS } from "./templates";
 import { TIERS, type Plan } from "./tiers";
-import { savePhoto } from "./media";
+import { deletePhoto, savePhoto } from "./media";
 import { newManageToken } from "./auth";
 import { normalisePhone, slugify, str } from "./util";
 import type { VendorRow } from "./vendors";
@@ -107,13 +107,17 @@ export async function saveVendorForm(fd: FormData, existing: VendorRow | null): 
       );
     }
 
-    // Existing photos: captions and removals.
-    const existingItems = (await client.query<{ id: number; kind: string; section: string }>(
-      "SELECT id, kind, section FROM portfolio_items WHERE vendor_id = $1", [vendorId],
+    // Existing photos: captions and removals. Removed files are deleted from
+    // storage after the transaction commits, never before: a rollback must not
+    // leave a row pointing at a file that is already gone.
+    const removedUrls: string[] = [];
+    const existingItems = (await client.query<{ id: number; kind: string; section: string; url: string }>(
+      "SELECT id, kind, section, url FROM portfolio_items WHERE vendor_id = $1", [vendorId],
     )).rows;
     for (const it of existingItems.filter((x) => x.kind === "photo")) {
       if (fd.get(`item_${it.id}_remove`) === "1") {
         await client.query("DELETE FROM portfolio_items WHERE id = $1", [it.id]);
+        removedUrls.push(it.url);
       } else if (fd.has(`item_${it.id}_caption`)) {
         await client.query("UPDATE portfolio_items SET caption = $1 WHERE id = $2", [str(fd.get(`item_${it.id}_caption`)).slice(0, 120) || null, it.id]);
       }
@@ -154,6 +158,8 @@ export async function saveVendorForm(fd: FormData, existing: VendorRow | null): 
     if (photoLimitHit) notices.push(`photos:${limits.photos}`);
     if (videoLimitHit) notices.push(`videos:${limits.videos}`);
     await client.query("COMMIT");
+    // Past the point of no return, so these can fail without losing the save.
+    await Promise.all(removedUrls.map(deletePhoto));
     return { ok: true, vendorId, slug, token, notices };
   } catch (e) {
     await client.query("ROLLBACK");
