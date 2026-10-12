@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { EVENT_TYPES, category, subcityName } from "@/lib/catalog";
+import { EVENT_TYPES, category } from "@/lib/catalog";
 import { i18n } from "@/lib/i18n";
 import { dualDate } from "@/lib/ethiopian";
 import { searchVendors } from "@/lib/vendors";
@@ -16,8 +16,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
   const c = category(sp.category ?? "");
   const occ = EVENT_TYPES.find((e) => e.key === sp.occasion);
   const what = c ? c.name.en : occ ? `${occ.name.en} vendors` : "Event vendors";
-  const where = sp.subcity ? ` in ${subcityName(sp.subcity, "en")}` : " in Addis Ababa";
-  return { title: `${what}${where}` };
+  return { title: `${what} in Addis Ababa` };
 }
 
 export default async function VendorsPage({ searchParams }: { searchParams: SP }) {
@@ -27,7 +26,6 @@ export default async function VendorsPage({ searchParams }: { searchParams: SP }
   const { sponsored, results, total, page, pages } = await searchVendors({
     category: category(sp.category ?? "") ? sp.category : undefined,
     occasion: EVENT_TYPES.some((e) => e.key === sp.occasion) ? sp.occasion : undefined,
-    subcity: sp.subcity || undefined,
     date,
     q: sp.q?.trim() || undefined,
     maxPrice: Number(sp.maxPrice) || undefined,
@@ -55,7 +53,7 @@ export default async function VendorsPage({ searchParams }: { searchParams: SP }
           <h1>{c ? c.name[lang] : occ ? occ.name[lang] : t("allCategories")}</h1>
           <p className="small results-meta">
             {shown} {t("results")}
-            {` · ${sp.subcity ? subcityName(sp.subcity, lang) : t("inAddis")}`}
+            {` · ${t("inAddis")}`}
             {date ? ` · ${t("freeOn")} ${dualDate(date, lang)}` : ""}
           </p>
           {!c && occ && <p className="small muted">{t("occasionNote")}</p>}

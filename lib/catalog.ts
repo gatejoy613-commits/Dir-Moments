@@ -20,24 +20,6 @@ export function category(key: string) {
   return CATEGORIES.find((c) => c.key === key);
 }
 
-export const SUBCITIES: { key: string; name: L }[] = [
-  { key: "addis-ketema", name: { en: "Addis Ketema", am: "አዲስ ከተማ" } },
-  { key: "akaky-kaliti", name: { en: "Akaky Kaliti", am: "አቃቂ ቃሊቲ" } },
-  { key: "arada", name: { en: "Arada", am: "አራዳ" } },
-  { key: "bole", name: { en: "Bole", am: "ቦሌ" } },
-  { key: "gullele", name: { en: "Gullele", am: "ጉለሌ" } },
-  { key: "kirkos", name: { en: "Kirkos", am: "ቂርቆስ" } },
-  { key: "kolfe-keranio", name: { en: "Kolfe Keranio", am: "ኮልፌ ቀራኒዮ" } },
-  { key: "lemi-kura", name: { en: "Lemi Kura", am: "ለሚ ኩራ" } },
-  { key: "lideta", name: { en: "Lideta", am: "ልደታ" } },
-  { key: "nifas-silk-lafto", name: { en: "Nifas Silk-Lafto", am: "ንፋስ ስልክ ላፍቶ" } },
-  { key: "yeka", name: { en: "Yeka", am: "የካ" } },
-];
-
-export function subcityName(key: string, lang: Lang) {
-  return SUBCITIES.find((s) => s.key === key)?.name[lang] ?? key;
-}
-
 export const EVENT_TYPES: { key: string; name: L; icon: string }[] = [
   { key: "wedding", name: { en: "Wedding", am: "ሰርግ" }, icon: "💒" },
   { key: "engagement", name: { en: "Engagement", am: "ቀለበት" }, icon: "💍" },

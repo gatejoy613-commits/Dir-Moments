@@ -10,7 +10,6 @@ const DICT = {
   search: { en: "Search", am: "ፈልግ" },
   searchPlaceholder: { en: "Name or style, e.g. traditional, drone", am: "ስም ወይም አይነት፣ ለምሳሌ ባህላዊ" },
   allCategories: { en: "All categories", am: "ሁሉም ዘርፎች" },
-  anySubcity: { en: "Any sub-city", am: "ሁሉም ክፍለ ከተሞች" },
   eventDate: { en: "Event date", am: "የዝግጅት ቀን" },
   maxBudget: { en: "Max starting price (ETB)", am: "ከፍተኛ መነሻ ዋጋ (ብር)" },
   minRating: { en: "Minimum rating", am: "ዝቅተኛ ደረጃ" },
@@ -34,7 +33,6 @@ const DICT = {
   call: { en: "Call", am: "ይደውሉ" },
   telegram: { en: "Telegram", am: "ቴሌግራም" },
   whatsapp: { en: "WhatsApp", am: "ዋትስአፕ" },
-  servesIn: { en: "Serves", am: "የሚሰሩበት" },
   about: { en: "About", am: "ስለ እኛ" },
   availability: { en: "Availability", am: "ነጻ ቀናት" },
   booked: { en: "Booked", am: "ተይዟል" },
@@ -76,7 +74,6 @@ const DICT = {
   statVendors: { en: "vendors listed", am: "ባለሙያዎች" },
   statVerified: { en: "verified in person", am: "በአካል የተረጋገጡ" },
   statCategories: { en: "categories", am: "ዘርፎች" },
-  statSubcities: { en: "sub-cities", am: "ክፍለ ከተሞች" },
 
   howItWorks: { en: "How it works", am: "እንዴት ይሰራል" },
   step1Title: { en: "Search", am: "ይፈልጉ" },

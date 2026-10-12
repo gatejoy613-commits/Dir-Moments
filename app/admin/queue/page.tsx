@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { adminCounts } from "@/lib/adminData";
 import { setVendorStatus, setVerified } from "@/lib/adminActions";
-import { category, subcityName } from "@/lib/catalog";
+import { category } from "@/lib/catalog";
 import { completeness, vendorsWhere } from "@/lib/vendors";
 import { AdminNav } from "@/components/AdminNav";
 
@@ -20,7 +20,7 @@ export default async function Queue() {
           <div key={v.id} className="card stack">
             <div className="spread">
               <div><b>{v.name}</b> {v.name_am && <span className="muted">· {v.name_am}</span>}
-                <div className="small muted">{category(v.category)?.one.en} · {v.subcities.map((s) => subcityName(s, "en")).join(", ")} · {v.phone}{v.telegram ? ` · @${v.telegram}` : ""}</div>
+                <div className="small muted">{category(v.category)?.one.en} · {v.phone}{v.telegram ? ` · @${v.telegram}` : ""}</div>
                 <div className="small muted">Signed up {v.created_at.toISOString().slice(0, 16).replace("T", " ")} · {Math.round(completeness(v) * 100)}% complete</div>
               </div>
               <div className="row">

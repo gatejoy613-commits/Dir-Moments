@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORIES, EVENT_TYPES, SUBCITIES } from "@/lib/catalog";
+import { CATEGORIES, EVENT_TYPES } from "@/lib/catalog";
 import { i18n } from "@/lib/i18n";
 import { FOUNDING_VENDOR_LIMIT } from "@/lib/tiers";
 import { homepagePicks, recentlyVerified, siteStats } from "@/lib/vendors";
@@ -43,7 +43,6 @@ export default async function Home() {
           <div><b>{stats.vendors}</b><span>{t("statVendors")}</span></div>
           <div><b>{stats.verified}</b><span>{t("statVerified")}</span></div>
           <div><b>{stats.categories}</b><span>{t("statCategories")}</span></div>
-          <div><b>{SUBCITIES.length}</b><span>{t("statSubcities")}</span></div>
         </div>
       )}
 

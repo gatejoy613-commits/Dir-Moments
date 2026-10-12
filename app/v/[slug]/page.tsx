@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { category, EVENT_TYPES, subcityName } from "@/lib/catalog";
+import { category, EVENT_TYPES } from "@/lib/catalog";
 import { etb, i18n } from "@/lib/i18n";
 import { template, type Section } from "@/lib/templates";
 import { todayAddis } from "@/lib/ethiopian";
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const v = await vendorBy("slug", slug);
   if (!v || v.status !== "approved") return { title: "Not found" };
   const c = category(v.category);
-  const desc = `${c?.one.en} in ${v.subcities.map((s) => subcityName(s, "en")).join(", ")}. ${v.bio.slice(0, 140)}`;
+  const desc = `${c?.one.en} in Addis Ababa. ${v.bio.slice(0, 140)}`;
   return {
     title: `${v.name} · ${c?.one.en}`,
     description: desc,
@@ -162,7 +162,6 @@ export default async function VendorPage({ params, searchParams }: { params: Par
           {lang === "en" && v.name_am && <div className="muted">{v.name_am}</div>}
           <div>{v.review_count > 0 ? <Stars rating={v.rating} count={v.review_count} label={t("reviews")} /> : <span className="small muted">{t("noReviews")}</span>}</div>
           {v.starting_price != null && <div><span className="muted small">{t("from")}</span> <b className="profile-price">{etb(v.starting_price, lang)}</b></div>}
-          <div className="small"><span className="muted">{t("servesIn")}:</span> {v.subcities.map((s) => subcityName(s, lang)).join(", ")}</div>
           <div className="contact-sticky">
             <ContactButtons vendorId={v.id} phone={v.phone} telegram={v.telegram} whatsapp={v.whatsapp}
               labels={{ call: t("call"), telegram: t("telegram"), whatsapp: t("whatsapp") }} />

@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS vendors (
   name             TEXT NOT NULL,
   name_am          TEXT,
   category         TEXT NOT NULL,
-  subcities        TEXT[] NOT NULL DEFAULT '{}',
   look             TEXT NOT NULL DEFAULT 'classic',
   bio              TEXT NOT NULL DEFAULT '',
   bio_am           TEXT NOT NULL DEFAULT '',
@@ -26,7 +25,6 @@ CREATE TABLE IF NOT EXISTS vendors (
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS vendors_category_idx ON vendors (category) WHERE status = 'approved';
-CREATE INDEX IF NOT EXISTS vendors_subcities_idx ON vendors USING GIN (subcities);
 
 CREATE TABLE IF NOT EXISTS packages (
   id           SERIAL PRIMARY KEY,
@@ -109,8 +107,35 @@ CREATE INDEX IF NOT EXISTS subscriptions_vendor_idx ON subscriptions (vendor_id,
 CREATE TABLE IF NOT EXISTS sponsored_slots (
   id          SERIAL PRIMARY KEY,
   category    TEXT NOT NULL,
-  subcity     TEXT NOT NULL,
   month       DATE NOT NULL,
   vendor_id   INTEGER NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
-  UNIQUE (category, subcity, month, vendor_id)
+  CONSTRAINT sponsored_slots_slot_key UNIQUE (category, month, vendor_id)
 );
+
+-- 2026-10: sub-cities dropped. Vendors in Addis work across the whole city, so
+-- filtering by sub-city hid people who would gladly have taken the job.
+--
+-- These run against a database created before the change; on a fresh one the
+-- columns above never exist and every statement is a no-op. Dropping
+-- sponsored_slots.subcity also drops the old UNIQUE that included it, so the
+-- replacement is added back here. Named explicitly so both paths agree.
+ALTER TABLE vendors DROP COLUMN IF EXISTS subcities;
+DROP INDEX IF EXISTS vendors_subcities_idx;
+ALTER TABLE sponsored_slots DROP COLUMN IF EXISTS subcity;
+-- A vendor could hold the same category and month in several sub-cities. Without
+-- sub-city those rows are duplicates and the new UNIQUE cannot be built over
+-- them, so collapse each group to its earliest row first.
+DELETE FROM sponsored_slots a USING sponsored_slots b
+ WHERE a.id > b.id AND a.category = b.category AND a.month = b.month AND a.vendor_id = b.vendor_id;
+-- Checked rather than caught: re-adding the constraint fails on the index name,
+-- which is duplicate_table, not the duplicate_object an EXCEPTION clause would
+-- naturally guard. migrate.ts reruns this file wholesale, so it has to be safe.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+     WHERE conrelid = 'sponsored_slots'::regclass
+       AND conname = 'sponsored_slots_slot_key'
+  ) THEN
+    ALTER TABLE sponsored_slots ADD CONSTRAINT sponsored_slots_slot_key UNIQUE (category, month, vendor_id);
+  END IF;
+END $$;

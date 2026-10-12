@@ -1,5 +1,5 @@
 import { pool } from "./db";
-import { category, SUBCITIES } from "./catalog";
+import { category } from "./catalog";
 import { template, LOOKS } from "./templates";
 import { TIERS, type Plan } from "./tiers";
 import { savePhoto } from "./media";
@@ -24,10 +24,8 @@ export async function saveVendorForm(fd: FormData, existing: VendorRow | null): 
 
   const name = str(fd.get("name")).slice(0, 80);
   const phone = normalisePhone(str(fd.get("phone")));
-  const subcities = fd.getAll("subcities").map(String).filter((s) => SUBCITIES.some((x) => x.key === s));
   if (!name) return { ok: false, error: "name" };
   if (!phone) return { ok: false, error: "phone" };
-  if (!subcities.length) return { ok: false, error: "subcities" };
 
   const whatsappRaw = str(fd.get("whatsapp"));
   const whatsapp = whatsappRaw ? normalisePhone(whatsappRaw) : null;
@@ -77,15 +75,15 @@ export async function saveVendorForm(fd: FormData, existing: VendorRow | null): 
     let slug: string;
     let token: string;
     const values = [
-      name, str(fd.get("name_am")).slice(0, 80) || null, subcities, look,
+      name, str(fd.get("name_am")).slice(0, 80) || null, look,
       str(fd.get("bio")).slice(0, 3000), str(fd.get("bio_am")).slice(0, 3000), JSON.stringify(sections),
       phone, telegram, whatsapp, startingPrice,
     ];
     if (existing) {
       vendorId = existing.id; slug = existing.slug; token = existing.manage_token;
       await client.query(
-        `UPDATE vendors SET name=$1, name_am=$2, subcities=$3, look=$4, bio=$5, bio_am=$6, sections=$7,
-           phone=$8, telegram=$9, whatsapp=$10, starting_price=$11, updated_at=now() WHERE id=$12`,
+        `UPDATE vendors SET name=$1, name_am=$2, look=$3, bio=$4, bio_am=$5, sections=$6,
+           phone=$7, telegram=$8, whatsapp=$9, starting_price=$10, updated_at=now() WHERE id=$11`,
         [...values, vendorId],
       );
     } else {
@@ -94,8 +92,8 @@ export async function saveVendorForm(fd: FormData, existing: VendorRow | null): 
       for (let n = 2; (await client.query("SELECT 1 FROM vendors WHERE slug = $1", [slug])).rowCount; n++) slug = `${base}-${n}`;
       token = newManageToken();
       const r = await client.query(
-        `INSERT INTO vendors (name, name_am, subcities, look, bio, bio_am, sections, phone, telegram, whatsapp, starting_price, category, slug, manage_token)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+        `INSERT INTO vendors (name, name_am, look, bio, bio_am, sections, phone, telegram, whatsapp, starting_price, category, slug, manage_token)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
         [...values, cat, slug, token],
       );
       vendorId = r.rows[0].id;

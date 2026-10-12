@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Lang } from "@/lib/catalog";
-import { category, subcityName } from "@/lib/catalog";
+import { category } from "@/lib/catalog";
 import { etb, translator } from "@/lib/i18n";
 import type { VendorRow } from "@/lib/vendors";
 import { Stars } from "./Stars";
@@ -20,8 +20,7 @@ export function VendorCard({ v, lang, sponsored }: { v: VendorRow; lang: Lang; s
           {v.verified && <span className="tag verified">✓ {t("verified")}</span>}
         </div>
         <div className="small muted">
-          {cat?.icon} {cat?.one[lang]} · {v.subcities.slice(0, 2).map((s) => subcityName(s, lang)).join(", ")}
-          {v.subcities.length > 2 ? ` +${v.subcities.length - 2}` : ""}
+          {cat?.icon} {cat?.one[lang]}
         </div>
         <div className="spread" style={{ marginTop: ".35rem" }}>
           {v.review_count > 0 ? <Stars rating={v.rating} count={v.review_count} /> : <span className="small muted">{t("noReviews")}</span>}

@@ -12,7 +12,6 @@ export type VendorRow = {
   name: string;
   name_am: string | null;
   category: string;
-  subcities: string[];
   look: string;
   bio: string;
   bio_am: string;
@@ -62,7 +61,6 @@ export function completeness(v: VendorRow): number {
   const t = template(v.category);
   const checks: boolean[] = [
     v.bio.trim().length + v.bio_am.trim().length > 40,
-    v.subcities.length > 0,
     !!(v.telegram || v.whatsapp),
     v.starting_price != null,
     !!v.cover_url,
@@ -93,7 +91,6 @@ export type SearchParams = {
   category?: string;
   /** A client-facing occasion (wedding, graduation...). Widens to the categories booked for it. */
   occasion?: string;
-  subcity?: string;
   date?: string;
   minRating?: number;
   maxPrice?: number;
@@ -137,7 +134,6 @@ export async function searchVendors(p: SearchParams) {
     const cats = occasionCategories(p.occasion);
     if (cats.length) { params.push(cats); where.push(`v.category = ANY($${params.length})`); }
   }
-  if (p.subcity) { params.push(p.subcity); where.push(`$${params.length} = ANY(v.subcities)`); }
   if (p.date) {
     params.push(p.date);
     where.push(`NOT EXISTS (SELECT 1 FROM availability a WHERE a.vendor_id = v.id AND a.day = $${params.length}::date)`);
@@ -161,7 +157,6 @@ export async function searchVendors(p: SearchParams) {
     const slotParams: unknown[] = [month];
     let slotWhere = "month = $1";
     if (p.category) { slotParams.push(p.category); slotWhere += ` AND category = $${slotParams.length}`; }
-    if (p.subcity) { slotParams.push(p.subcity); slotWhere += ` AND subcity = $${slotParams.length}`; }
     const slotVendors = new Set(
       (await q<{ vendor_id: number }>(`SELECT DISTINCT vendor_id FROM sponsored_slots WHERE ${slotWhere}`, slotParams)).map((r) => r.vendor_id),
     );
