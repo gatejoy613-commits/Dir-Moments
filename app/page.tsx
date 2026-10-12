@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { CATEGORIES } from "@/lib/catalog";
+import { CATEGORIES, SUBCITIES } from "@/lib/catalog";
 import { i18n } from "@/lib/i18n";
-import { categoryCounts, homepagePicks, recentlyVerified } from "@/lib/vendors";
+import { FOUNDING_VENDOR_LIMIT } from "@/lib/tiers";
+import { categoryCounts, homepagePicks, recentlyVerified, siteStats } from "@/lib/vendors";
 import { SearchForm } from "@/components/SearchForm";
 import { VendorCard } from "@/components/VendorCard";
 
@@ -9,14 +10,37 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const { lang, t } = await i18n();
-  const [counts, picks, verified] = await Promise.all([categoryCounts(), homepagePicks(), recentlyVerified()]);
+  const [counts, picks, verified, stats] = await Promise.all([
+    categoryCounts(),
+    homepagePicks(),
+    recentlyVerified(),
+    siteStats(),
+  ]);
+  const foundingLeft = Math.max(0, FOUNDING_VENDOR_LIMIT - stats.founding_used);
+
   return (
     <>
       <section className="hero">
-        <h1>{lang === "am" ? "ለዝግጅትዎ ትክክለኛውን ባለሙያ ያግኙ" : "Find the right people for your event"}</h1>
-        <p className="muted">{t("tagline")}</p>
+        <h1>{t("heroTitle")}</h1>
+        <p className="lede">{t("heroLede")}</p>
+        <ul className="value-props">
+          <li>{t("valueFree")}</li>
+          <li>{t("valueNoCommission")}</li>
+          <li>{t("valueDirect")}</li>
+        </ul>
       </section>
+
       <SearchForm f={{}} lang={lang} compact />
+
+      {/* Proof the directory is inhabited. Read live, so it can never overstate. */}
+      {stats.vendors > 0 && (
+        <div className="statbar">
+          <div><b>{stats.vendors}</b><span>{t("statVendors")}</span></div>
+          <div><b>{stats.verified}</b><span>{t("statVerified")}</span></div>
+          <div><b>{stats.categories}</b><span>{t("statCategories")}</span></div>
+          <div><b>{SUBCITIES.length}</b><span>{t("statSubcities")}</span></div>
+        </div>
+      )}
 
       <h2>{t("categories")}</h2>
       <div className="cat-grid">
@@ -42,11 +66,23 @@ export default async function Home() {
         </>
       )}
 
-      <div className="card" style={{ marginTop: "2rem" }}>
-        <h3>{t("listBusiness")}</h3>
+      <h2>{t("howItWorks")}</h2>
+      <ol className="steps">
+        <li><b>{t("step1Title")}</b><p className="small muted">{t("step1Body")}</p></li>
+        <li><b>{t("step2Title")}</b><p className="small muted">{t("step2Body")}</p></li>
+        <li><b>{t("step3Title")}</b><p className="small muted">{t("step3Body")}</p></li>
+      </ol>
+
+      <section className="join-cta">
+        <h3>{t("joinTitle")}</h3>
         <p className="muted">{t("noCommission")}</p>
+        {foundingLeft > 0 && (
+          <p className="founding">
+            🎁 {t("foundingOffer")} · <b>{foundingLeft}</b> {t("placesLeft")}
+          </p>
+        )}
         <Link className="btn primary" href="/join">{t("listBusiness")}</Link>
-      </div>
+      </section>
     </>
   );
 }

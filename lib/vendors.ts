@@ -185,6 +185,22 @@ export async function recentlyVerified(limit = 6) {
   );
 }
 
+/**
+ * Headline counts for the landing page. A directory lives or dies on looking
+ * inhabited, so these are read live rather than hard-coded. One round trip,
+ * because the database may be remote.
+ */
+export async function siteStats() {
+  const r = await one<{ vendors: number; verified: number; categories: number; founding_used: number }>(
+    `SELECT
+       (SELECT count(*) FROM vendors WHERE status = 'approved')::int AS vendors,
+       (SELECT count(*) FROM vendors WHERE status = 'approved' AND verified)::int AS verified,
+       (SELECT count(DISTINCT category) FROM vendors WHERE status = 'approved')::int AS categories,
+       (SELECT count(DISTINCT vendor_id) FROM subscriptions WHERE term = 'founding')::int AS founding_used`,
+  );
+  return r!;
+}
+
 export async function categoryCounts() {
   const rows = await q<{ category: string; n: number }>(
     "SELECT category, count(*)::int AS n FROM vendors WHERE status = 'approved' GROUP BY category",
