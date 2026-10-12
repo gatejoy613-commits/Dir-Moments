@@ -10,7 +10,10 @@
   --gold: #b7862b;
   --danger: #b3261e;
   --sponsor: #8a5a00;
-  --radius: 12px;
+  --radius: 14px;
+  /* Warm-tinted, not neutral grey: keeps the page feeling lit rather than printed. */
+  --shadow: 0 1px 2px rgba(74, 55, 35, .04), 0 6px 16px rgba(74, 55, 35, .05);
+  --shadow-lift: 0 2px 6px rgba(74, 55, 35, .07), 0 12px 24px rgba(74, 55, 35, .08);
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Ethiopic", "Nyala", "Abyssinica SIL", sans-serif;
 }
 
@@ -65,14 +68,13 @@ textarea { min-height: 90px; }
 .notice.error { background: #fdeceb; border-color: #f2c9c5; }
 
 /* Cards */
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
 .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .cat-grid { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-.cat { display: flex; gap: .6rem; align-items: center; padding: .8rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); text-decoration: none; color: var(--text); font-weight: 600; }
+.cat { display: flex; gap: .6rem; align-items: center; padding: .85rem; background: var(--surface); border: 1px solid rgba(29, 27, 25, .07); border-radius: var(--radius); text-decoration: none; color: var(--text); font-weight: 600; box-shadow: var(--shadow); }
 .cat .icon { font-size: 1.4rem; }
-.cat .n { color: var(--muted); font-weight: 400; font-size: .8rem; display: block; }
 
-.vcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; color: var(--text); display: flex; flex-direction: column; }
+.vcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; color: var(--text); display: flex; flex-direction: column; box-shadow: var(--shadow); }
 .vcard .img { aspect-ratio: 4/3; background: #eee center/cover no-repeat; position: relative; }
 .vcard .body { padding: .75rem .9rem 1rem; }
 .vcard .name { font-weight: 700; }
@@ -82,19 +84,119 @@ textarea { min-height: 90px; }
 .tag.plan { color: var(--gold); border-color: #ead7ae; }
 .stars { color: #e0a100; letter-spacing: 1px; }
 
+/* Landing. Clients arrive planning a celebration, so the page opens warm:
+   a gold-to-blush wash with scattered confetti. Both are gradients, which
+   costs no extra request and no image bytes on a slow connection. */
+.hero {
+  position: relative; overflow: hidden;
+  padding: 0; margin-bottom: 1rem;
+  border: 1px solid #f2e5d6; border-radius: 18px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(183, 134, 43, .14) 0 6px, transparent 7px),
+    radial-gradient(circle at 88% 12%, rgba(194, 65, 12, .11) 0 5px, transparent 6px),
+    radial-gradient(circle at 77% 70%, rgba(15, 110, 90, .11) 0 7px, transparent 8px),
+    radial-gradient(circle at 27% 86%, rgba(183, 134, 43, .11) 0 4px, transparent 5px),
+    radial-gradient(circle at 55% 6%, rgba(194, 65, 12, .09) 0 3px, transparent 4px),
+    radial-gradient(circle at 40% 62%, rgba(183, 134, 43, .08) 0 3px, transparent 4px),
+    linear-gradient(165deg, #fdf4e8 0%, #fdeff1 44%, var(--surface) 100%);
+}
+.hero-banner { width: 100%; height: 150px; object-fit: cover; object-position: center 30%; }
+.hero-body { padding: 1.4rem 1.1rem 1.6rem; }
+.hero .eyebrow { font-size: .8rem; font-weight: 700; color: var(--gold); margin-bottom: .45rem; }
+.hero h1 { font-size: 1.75rem; max-width: 18ch; }
+.hero .lede { color: var(--muted); max-width: 56ch; margin-bottom: 1rem; }
+@media (min-width: 720px) {
+  .hero-banner { height: 225px; }
+  .hero-body { padding: 2rem 2rem 2.25rem; }
+  .hero h1 { font-size: 2.3rem; }
+}
+
+/* Occasions: the question clients actually arrive with. */
+.occasions { display: grid; gap: .6rem; grid-template-columns: repeat(2, 1fr); margin-bottom: .5rem; }
+@media (min-width: 560px) { .occasions { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 880px) { .occasions { grid-template-columns: repeat(6, 1fr); } }
+.occasion {
+  display: flex; flex-direction: column; align-items: center; gap: .1rem; text-align: center;
+  padding: .95rem .5rem; border-radius: 16px; text-decoration: none; color: var(--text);
+  border: 1px solid #f2e5d6; box-shadow: var(--shadow);
+  background: linear-gradient(170deg, #fdf5ea 0%, var(--surface) 85%);
+}
+.occasion .icon { font-size: 1.7rem; line-height: 1.25; }
+.occasion .label { font-weight: 700; font-size: .9rem; }
+
+.value-props { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; margin: 0; padding: 0; }
+.value-props li {
+  font-size: .85rem; font-weight: 600; border-radius: 999px; padding: .3rem .75rem;
+  background: var(--surface); border: 1px solid #cfe7dd; color: var(--accent);
+}
+.value-props li::before { content: "✓"; margin-right: .3rem; }
+
+/* Live counts: proof the directory is not empty. */
+.statbar { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; margin: 1rem 0 .5rem; }
+@media (min-width: 560px) { .statbar { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
+.statbar div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: .65rem .75rem; text-align: center; box-shadow: var(--shadow); }
+.statbar b { display: block; font-size: 1.4rem; font-weight: 800; line-height: 1.15; }
+.statbar span { font-size: .78rem; color: var(--muted); }
+
+.steps { list-style: none; counter-reset: step; margin: 0; padding: 0; display: grid; gap: .6rem; }
+@media (min-width: 720px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+.steps li {
+  counter-increment: step; position: relative;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: .9rem 1rem .9rem 3rem; box-shadow: var(--shadow);
+}
+.steps li::before {
+  content: counter(step); position: absolute; left: .9rem; top: .95rem;
+  width: 26px; height: 26px; border-radius: 999px;
+  background: var(--accent); color: var(--accent-ink);
+  font-weight: 800; font-size: .85rem; display: grid; place-items: center;
+}
+.steps li p { margin: .2rem 0 0; }
+
+.join-cta { margin-top: 2rem; padding: 1.25rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.join-cta .founding {
+  background: #fff8e8; border: 1px solid #ecd49f; color: var(--sponsor);
+  border-radius: 10px; padding: .55rem .8rem; font-size: .9rem;
+}
+
 /* Search */
-.hero { padding: 1.5rem 0 1rem; }
-.hero h1 { font-size: 1.8rem; }
 .filters { display: grid; gap: .6rem; grid-template-columns: 1fr; }
-@media (min-width: 720px) { .filters { grid-template-columns: repeat(3, 1fr); } .filters .wide { grid-column: span 3; } }
+/* The outer form has two fields, the advanced panel inside it has three, and
+   both use .filters. auto-fit lets each take the columns it needs; 1 / -1
+   spans the full row whatever that count turns out to be. */
+@media (min-width: 720px) {
+  .filters { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .filters .wide { grid-column: 1 / -1; }
+}
 .filters .field { margin: 0; }
 details.more summary { cursor: pointer; color: var(--accent); font-weight: 600; padding: .4rem 0; }
 .pager { display: flex; gap: .5rem; justify-content: center; margin-top: 1.5rem; }
 
 /* Profile */
-.profile-head { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-@media (min-width: 760px) { .profile-head { grid-template-columns: 1.3fr 1fr; align-items: start; } }
-.cover { aspect-ratio: 16/10; border-radius: var(--radius); background: #eee center/cover no-repeat; }
+.profile-head {
+  display: grid; gap: 1rem; grid-template-columns: 1fr;
+  padding: 1rem; border-radius: 18px; border: 1px solid rgba(29, 27, 25, .07);
+  box-shadow: var(--shadow);
+}
+@media (min-width: 760px) { .profile-head { grid-template-columns: 1.3fr 1fr; align-items: start; padding: 1.25rem; } }
+.cover { aspect-ratio: 16/10; border-radius: var(--radius); background: #f3efe9 center/cover no-repeat; }
+.profile-head h1 { margin-bottom: .1rem; }
+/* The price is the question every client opens with: let it carry weight. */
+.profile-price { font-size: 1.45rem; font-weight: 800; line-height: 1.1; }
+
+/* A rule in the profile's own look colour marks each template section. */
+.profile h2 { display: flex; align-items: center; gap: .5rem; }
+.profile h2::before {
+  content: ""; flex: none; width: 4px; height: 1.05em; border-radius: 2px; background: var(--accent);
+}
+.profile .review {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+  padding: .85rem 1rem; margin-bottom: .6rem; box-shadow: var(--shadow);
+}
+/* The category tint arrives as an inline style, which only !important can beat.
+   A pale tint on the Night look would be unreadable. */
+.look-night .profile-head { background: #20232a !important; border-color: #343841; }
+.look-night .review { background: #20232a; border-color: #343841; color: #eceae6; }
 .contact-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
 .contact-bar .btn { padding: .6rem .3rem; }
 @media (max-width: 759px) {
@@ -152,3 +254,34 @@ th, td { text-align: left; padding: .5rem; border-bottom: 1px solid var(--line);
 .progress > div { height: 100%; background: var(--accent); }
 fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; margin: 0 0 1rem; background: var(--surface); }
 legend { font-weight: 700; padding: 0 .4rem; }
+
+/* A small lift on tap targets. Pointer devices only, and off for anyone who
+   has asked the system for reduced motion. */
+@media (hover: hover) {
+  .cat, .occasion, .vcard { transition: transform .15s ease, box-shadow .15s ease; }
+  .cat:hover, .occasion:hover, .vcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cat, .occasion, .vcard { transition: none; }
+  .cat:hover, .occasion:hover, .vcard:hover { transform: none; }
+}
+
+/* Results page. The header repeats the tint of the category tile that led here. */
+.results-head {
+  display: flex; gap: .9rem; align-items: center;
+  margin: 1rem 0; padding: 1.1rem 1.25rem;
+  border: 1px solid rgba(29, 27, 25, .07); border-radius: 18px; box-shadow: var(--shadow);
+}
+.results-head h1 { margin: 0; font-size: 1.45rem; }
+.results-icon { font-size: 2rem; line-height: 1; flex: none; }
+.results-meta { margin: .15rem 0 0; color: var(--muted); }
+@media (min-width: 720px) { .results-head { padding: 1.4rem 1.6rem; } .results-head h1 { font-size: 1.8rem; } }
+
+.empty {
+  text-align: center; padding: 2.5rem 1.25rem; margin-top: 1rem;
+  background: linear-gradient(170deg, #fdf4e8 0%, var(--surface) 90%);
+  border: 1px solid #f2e5d6; border-radius: 18px; box-shadow: var(--shadow);
+}
+.empty-icon { font-size: 2.4rem; display: block; margin-bottom: .4rem; }
+.empty h2 { margin-top: 0; }
+.empty p { max-width: 42ch; margin-left: auto; margin-right: auto; }

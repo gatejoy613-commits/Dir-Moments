@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { one, q } from "./db";
 import { adminLogin, adminLogout, requireAdmin } from "./auth";
 import { addDays, todayAddis } from "./ethiopian";
-import { SLOTS_PER_CATEGORY_SUBCITY, TERM_DAYS } from "./tiers";
+import { SLOTS_PER_CATEGORY, TERM_DAYS } from "./tiers";
 import { str } from "./util";
 
 function back(fd: FormData, fallback: string) {
@@ -95,14 +95,13 @@ export async function cancelSubscription(fd: FormData) {
 export async function assignSlot(fd: FormData) {
   await requireAdmin();
   const vendorId = Number(fd.get("vendor_id"));
-  const subcity = str(fd.get("subcity"));
   const month = str(fd.get("month"));
   if (!/^\d{4}-\d{2}-01$/.test(month)) return;
   const v = await one<{ category: string }>("SELECT category FROM vendors WHERE id = $1", [vendorId]);
   if (!v) return;
-  const used = await one<{ n: number }>("SELECT count(*)::int AS n FROM sponsored_slots WHERE category = $1 AND subcity = $2 AND month = $3", [v.category, subcity, month]);
-  if ((used?.n ?? 0) >= SLOTS_PER_CATEGORY_SUBCITY) redirect(`/admin/vendors/${vendorId}?error=slots-full`);
-  await q("INSERT INTO sponsored_slots (category, subcity, month, vendor_id) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", [v.category, subcity, month, vendorId]);
+  const used = await one<{ n: number }>("SELECT count(*)::int AS n FROM sponsored_slots WHERE category = $1 AND month = $2", [v.category, month]);
+  if ((used?.n ?? 0) >= SLOTS_PER_CATEGORY) redirect(`/admin/vendors/${vendorId}?error=slots-full`);
+  await q("INSERT INTO sponsored_slots (category, month, vendor_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING", [v.category, month, vendorId]);
   back(fd, `/admin/vendors/${vendorId}`);
 }
 

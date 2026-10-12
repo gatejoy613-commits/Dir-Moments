@@ -2,10 +2,10 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { adminCounts } from "@/lib/adminData";
 import { removeSlot } from "@/lib/adminActions";
-import { CATEGORIES, SUBCITIES } from "@/lib/catalog";
+import { CATEGORIES } from "@/lib/catalog";
 import { q } from "@/lib/db";
 import { addDays, todayAddis } from "@/lib/ethiopian";
-import { SLOTS_PER_CATEGORY_SUBCITY } from "@/lib/tiers";
+import { SLOTS_PER_CATEGORY } from "@/lib/tiers";
 import { AdminNav } from "@/components/AdminNav";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +18,9 @@ export default async function Slots({ searchParams }: { searchParams: Promise<{ 
   const month = sp.month === nextMonth ? nextMonth : thisMonth;
   const [counts, slots] = await Promise.all([
     adminCounts(),
-    q("SELECT s.*, v.name, v.id AS vid FROM sponsored_slots s JOIN vendors v ON v.id = s.vendor_id WHERE s.month = $1::date ORDER BY s.category, s.subcity", [month]),
+    q("SELECT s.*, v.name, v.id AS vid FROM sponsored_slots s JOIN vendors v ON v.id = s.vendor_id WHERE s.month = $1::date ORDER BY s.category", [month]),
   ]);
-  const used = (c: string, s: string) => slots.filter((x) => x.category === c && x.subcity === s).length;
+  const used = (c: string) => slots.filter((x) => x.category === c).length;
   return (
     <>
       <AdminNav current="/admin/slots" counts={counts} />
@@ -28,20 +28,23 @@ export default async function Slots({ searchParams }: { searchParams: Promise<{ 
         <Link href="/admin/slots" className={month === thisMonth ? "on" : ""}>{thisMonth.slice(0, 7)}</Link>
         <Link href={`/admin/slots?month=${nextMonth}`} className={month === nextMonth ? "on" : ""}>{nextMonth.slice(0, 7)}</Link>
       </div>
-      <p className="small muted">Slots used out of {SLOTS_PER_CATEGORY_SUBCITY} per category and sub-city. Assign slots from a vendor&apos;s admin page.</p>
+      <p className="small muted">Slots used out of {SLOTS_PER_CATEGORY} per category and month. Assign slots from a vendor&apos;s admin page.</p>
       <div className="table-wrap card"><table>
-        <thead><tr><th></th>{SUBCITIES.map((s) => <th key={s.key} className="small">{s.name.en}</th>)}</tr></thead>
-        <tbody>{CATEGORIES.map((c) => (
-          <tr key={c.key}><th>{c.icon} {c.name.en}</th>
-            {SUBCITIES.map((s) => { const n = used(c.key, s.key); return <td key={s.key} style={{ color: n >= SLOTS_PER_CATEGORY_SUBCITY ? "var(--danger)" : n ? "inherit" : "var(--muted)" }}>{n}</td>; })}
-          </tr>
-        ))}</tbody>
+        <thead><tr><th>Category</th><th className="small">Slots used</th></tr></thead>
+        <tbody>{CATEGORIES.map((c) => {
+          const n = used(c.key);
+          return (
+            <tr key={c.key}><th>{c.icon} {c.name.en}</th>
+              <td style={{ color: n >= SLOTS_PER_CATEGORY ? "var(--danger)" : n ? "inherit" : "var(--muted)" }}>{n} / {SLOTS_PER_CATEGORY}</td>
+            </tr>
+          );
+        })}</tbody>
       </table></div>
       <h2>Holders</h2>
       <div className="table-wrap card"><table>
-        <thead><tr><th>Category</th><th>Sub-city</th><th>Vendor</th><th></th></tr></thead>
+        <thead><tr><th>Category</th><th>Vendor</th><th></th></tr></thead>
         <tbody>{slots.map((s) => (
-          <tr key={s.id}><td>{s.category}</td><td>{s.subcity}</td><td><Link href={`/admin/vendors/${s.vid}`}>{s.name}</Link></td>
+          <tr key={s.id}><td>{s.category}</td><td><Link href={`/admin/vendors/${s.vid}`}>{s.name}</Link></td>
             <td><form action={removeSlot}><input type="hidden" name="id" value={s.id} /><input type="hidden" name="back" value={`/admin/slots?month=${month}`} /><button className="btn small danger">Remove</button></form></td></tr>
         ))}</tbody>
       </table></div>

@@ -3,14 +3,13 @@ import type { L, Lang } from "./catalog";
 
 // Amharic copy is a first draft and needs review by a native speaker before launch.
 const DICT = {
-  appName: { en: "Addis Events", am: "አዲስ ኢቨንትስ" },
+  appName: { en: "Dir Moments", am: "ድር ሞመንትስ" },
   tagline: { en: "Find photographers, DJs, decorators and more for your event in Addis Ababa. Contact them directly, free.", am: "ለዝግጅትዎ ፎቶግራፈር፣ ዲጄ፣ ዲኮር እና ሌሎችን በአዲስ አበባ ያግኙ። በቀጥታ ያግኟቸው፣ በነጻ።" },
   browse: { en: "Browse", am: "ፈልግ" },
   listBusiness: { en: "List your business", am: "ስራዎን ያስመዝግቡ" },
   search: { en: "Search", am: "ፈልግ" },
   searchPlaceholder: { en: "Name or style, e.g. traditional, drone", am: "ስም ወይም አይነት፣ ለምሳሌ ባህላዊ" },
   allCategories: { en: "All categories", am: "ሁሉም ዘርፎች" },
-  anySubcity: { en: "Any sub-city", am: "ሁሉም ክፍለ ከተሞች" },
   eventDate: { en: "Event date", am: "የዝግጅት ቀን" },
   maxBudget: { en: "Max starting price (ETB)", am: "ከፍተኛ መነሻ ዋጋ (ብር)" },
   minRating: { en: "Minimum rating", am: "ዝቅተኛ ደረጃ" },
@@ -34,7 +33,6 @@ const DICT = {
   call: { en: "Call", am: "ይደውሉ" },
   telegram: { en: "Telegram", am: "ቴሌግራም" },
   whatsapp: { en: "WhatsApp", am: "ዋትስአፕ" },
-  servesIn: { en: "Serves", am: "የሚሰሩበት" },
   about: { en: "About", am: "ስለ እኛ" },
   availability: { en: "Availability", am: "ነጻ ቀናት" },
   booked: { en: "Booked", am: "ተይዟል" },
@@ -61,6 +59,53 @@ const DICT = {
     am: "በአንድ ገጽ እስከ 3 ውጤቶች ስፖንሰር ተብለው ይታያሉ። ሌሎቹ በደረጃ፣ በአስተያየት ብዛት፣ በመገለጫ ሙሉነትና በማረጋገጫ ይደረደራሉ። ፕሮ እና ፊቸርድ ባለሙያዎች በዘርፋቸው ቅድሚያ ያገኛሉ። ዝቅተኛ ደረጃ ወይም ተደጋጋሚ ያለመገኘት ቅሬታ ያለው ባለሙያ ቢከፍልም የስፖንሰር ቦታ ያጣል።",
   },
   footer: { en: "A free directory of event vendors in Addis Ababa. We never take a commission.", am: "በአዲስ አበባ ያሉ የዝግጅት ባለሙያዎች ነጻ ማውጫ። ኮሚሽን አንወስድም።" },
+
+  // Landing page. The brand no longer says "Addis" or "Events", so the copy
+  // has to carry what the site is on its own.
+  heroTitle: { en: "Find the right people for your event", am: "ለዝግጅትዎ ትክክለኛውን ባለሙያ ያግኙ" },
+  heroLede: {
+    en: "Photographers, videographers, makeup artists, decorators, DJs, bands and more across Addis Ababa. Contact them directly.",
+    am: "ፎቶግራፈሮች፣ ቪዲዮግራፈሮች፣ የሜካፕ ባለሙያዎች፣ ዲኮር፣ ዲጄዎች፣ ባንዶችና ሌሎች በአዲስ አበባ። በቀጥታ ያግኟቸው።",
+  },
+  valueFree: { en: "Free to use", am: "ለመጠቀም ነጻ" },
+  valueNoCommission: { en: "No commission, ever", am: "ኮሚሽን የለም" },
+  valueDirect: { en: "You contact vendors directly", am: "በቀጥታ ያግኟቸዋል" },
+
+  statVendors: { en: "vendors listed", am: "ባለሙያዎች" },
+  statVerified: { en: "verified in person", am: "በአካል የተረጋገጡ" },
+  statCategories: { en: "categories", am: "ዘርፎች" },
+
+  howItWorks: { en: "How it works", am: "እንዴት ይሰራል" },
+  step1Title: { en: "Search", am: "ይፈልጉ" },
+  step1Body: {
+    en: "Pick a category, a sub-city and your event date. Vendors already booked that day are hidden.",
+    am: "ዘርፍ፣ ክፍለ ከተማና የዝግጅትዎን ቀን ይምረጡ። በዚያ ቀን የተያዙ ባለሙያዎች አይታዩም።",
+  },
+  step2Title: { en: "Compare", am: "ያወዳድሩ" },
+  step2Body: {
+    en: "Look through photos, packages, starting prices and reviews from real clients.",
+    am: "ፎቶዎችን፣ ፓኬጆችን፣ የመነሻ ዋጋዎችንና የደንበኞችን አስተያየት ይመልከቱ።",
+  },
+  step3Title: { en: "Contact them", am: "ያግኙዋቸው" },
+  step3Body: {
+    en: "Call, Telegram or WhatsApp the vendor yourself. No booking fee and no middleman.",
+    am: "በስልክ፣ በቴሌግራም ወይም በዋትስአፕ ራስዎ ያግኙዋቸው። ምንም የአገልግሎት ክፍያ የለም።",
+  },
+
+  joinTitle: { en: "Are you an event vendor?", am: "የዝግጅት ባለሙያ ነዎት?" },
+  foundingOffer: { en: "Founding offer: the first 100 vendors get Pro free for 3 months", am: "የመስራች ቅናሽ፦ የመጀመሪያዎቹ 100 ባለሙያዎች ፕሮን ለ3 ወር በነጻ" },
+  placesLeft: { en: "places left", am: "ቦታዎች ቀርተዋል" },
+
+  // Occasions. Clients arrive planning a wedding, not shopping for a videographer.
+  heroEyebrow: { en: "Weddings, engagements, graduations and every celebration in between", am: "ሰርግ፣ ቀለበት፣ ምረቃ እና ሌሎች ክብረ በዓላት" },
+  occasionsTitle: { en: "What are you celebrating?", am: "ምን እያከበሩ ነው?" },
+  occasionsLede: { en: "Start with the day you are planning and we will show the people who make it happen.", am: "እያቀዱት ባለው ዝግጅት ይጀምሩ፤ የሚያስፈልጉዎትን ባለሙያዎች እናሳይዎታለን።" },
+  occasionNote: { en: "The vendors people usually book for this celebration.", am: "ለዚህ ክብረ በዓል አብዛኛውን ጊዜ የሚፈለጉ ባለሙያዎች።" },
+
+  // Results and profile pages.
+  inAddis: { en: "in Addis Ababa", am: "በአዲስ አበባ" },
+  browseAll: { en: "See all vendors", am: "ሁሉንም ባለሙያዎች ይመልከቱ" },
+  noResultsTitle: { en: "Nothing matches yet", am: "እስካሁን ምንም አልተገኘም" },
 } satisfies Record<string, L>;
 
 export type DictKey = keyof typeof DICT;

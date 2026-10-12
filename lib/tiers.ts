@@ -19,7 +19,9 @@ export const TERM_DAYS = { month: 30, season: 91, year: 365, founding: 91 } as c
 
 // Sponsored placement rules (published to vendors and clients).
 export const SPONSORED_PER_PAGE = 3;
-export const SLOTS_PER_CATEGORY_SUBCITY = 5;
+// Sponsored slots are sold per category per month. Sub-cities used to multiply
+// this by eleven; 15 keeps Featured scarce without running out of stock to sell.
+export const SLOTS_PER_CATEGORY = 15;
 export const SPONSOR_MIN_RATING = 3.5;
 export const SPONSOR_MAX_NO_SHOWS = 1;
 export const FOUNDING_VENDOR_LIMIT = 100;

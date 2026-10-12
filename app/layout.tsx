@@ -4,7 +4,7 @@ import Link from "next/link";
 import { i18n } from "@/lib/i18n";
 
 export const metadata: Metadata = {
-  title: { default: "Addis Events: find event vendors in Addis Ababa", template: "%s · Addis Events" },
+  title: { default: "Dir Moments: find event vendors in Addis Ababa", template: "%s · Dir Moments" },
   description: "A free directory of photographers, videographers, makeup artists, decorators, DJs, singers, bands, cake bakers, painters and event planners in Addis Ababa.",
 };
 
@@ -17,7 +17,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <header className="site-header">
           <div className="wrap">
-            <Link href="/" className="logo">Addis<span>Events</span></Link>
+            <Link href="/" className="logo">Dir<span>Moments</span></Link>
             <nav className="nav">
               <Link href="/vendors">{t("browse")}</Link>
               <Link href="/join" className="hide-sm">{t("listBusiness")}</Link>

@@ -1,4 +1,4 @@
-# Addis Events: Phase A directory (v1.0)
+# Dir Moments: Phase A directory (v1.0)
 
 A free, commission-free directory of event vendors in Addis Ababa. Clients find vendors and contact them directly by call, Telegram or WhatsApp. Vendors pay only for visibility (Pro and Featured). Scope follows `event-directory-plan-v2.md`.
 

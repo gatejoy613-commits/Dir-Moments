@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { category, EVENT_TYPES, subcityName } from "@/lib/catalog";
+import { category, EVENT_TYPES } from "@/lib/catalog";
 import { etb, i18n } from "@/lib/i18n";
 import { template, type Section } from "@/lib/templates";
 import { todayAddis } from "@/lib/ethiopian";
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const v = await vendorBy("slug", slug);
   if (!v || v.status !== "approved") return { title: "Not found" };
   const c = category(v.category);
-  const desc = `${c?.one.en} in ${v.subcities.map((s) => subcityName(s, "en")).join(", ")}. ${v.bio.slice(0, 140)}`;
+  const desc = `${c?.one.en} in Addis Ababa. ${v.bio.slice(0, 140)}`;
   return {
     title: `${v.name} · ${c?.one.en}`,
     description: desc,
@@ -142,14 +142,15 @@ export default async function VendorPage({ params, searchParams }: { params: Par
   };
 
   return (
-    <div className={`look-${v.look}`} style={{ marginTop: "1rem" }}>
+    <div className={`profile look-${v.look}`} style={{ marginTop: "1rem" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {preview && (
         <div className="notice warn" style={{ marginBottom: "1rem" }}>
           {lang === "am" ? "ቅድመ እይታ፦ ይህ መገለጫ ገና አልጸደቀም።" : `Preview: this profile is ${v.status} and not visible to clients yet.`}
         </div>
       )}
-      <div className="profile-head">
+      {/* Tinted with the vendor's own category, so arriving from a category tile feels continuous. */}
+      <div className="profile-head" style={{ background: `linear-gradient(160deg, ${cat.tint} 0%, ${cat.tint} 45%, var(--surface) 100%)` }}>
         <div className="cover" style={{ backgroundImage: v.cover_url ? `url("${v.cover_url}")` : undefined }} role="img" aria-label={v.name} />
         <div className="stack">
           <div className="row">
@@ -160,8 +161,7 @@ export default async function VendorPage({ params, searchParams }: { params: Par
           <h1>{name}</h1>
           {lang === "en" && v.name_am && <div className="muted">{v.name_am}</div>}
           <div>{v.review_count > 0 ? <Stars rating={v.rating} count={v.review_count} label={t("reviews")} /> : <span className="small muted">{t("noReviews")}</span>}</div>
-          {v.starting_price != null && <div><span className="muted">{t("from")}</span> <b style={{ fontSize: "1.2rem" }}>{etb(v.starting_price, lang)}</b></div>}
-          <div className="small"><span className="muted">{t("servesIn")}:</span> {v.subcities.map((s) => subcityName(s, lang)).join(", ")}</div>
+          {v.starting_price != null && <div><span className="muted small">{t("from")}</span> <b className="profile-price">{etb(v.starting_price, lang)}</b></div>}
           <div className="contact-sticky">
             <ContactButtons vendorId={v.id} phone={v.phone} telegram={v.telegram} whatsapp={v.whatsapp}
               labels={{ call: t("call"), telegram: t("telegram"), whatsapp: t("whatsapp") }} />

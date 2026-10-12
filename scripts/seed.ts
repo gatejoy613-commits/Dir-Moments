@@ -3,7 +3,7 @@
 import { Pool } from "pg";
 import { randomBytes } from "node:crypto";
 import { TEMPLATES } from "../lib/templates";
-import { SUBCITIES, type CategoryKey } from "../lib/catalog";
+import { type CategoryKey } from "../lib/catalog";
 import { addDays, todayAddis } from "../lib/ethiopian";
 
 let seed = 20261010;
@@ -181,8 +181,6 @@ async function main() {
 
   for (const [i, v] of VENDORS.entries()) {
     const tpl = TEMPLATES[v.cat];
-    const subcities = pickN(SUBCITIES.map((s) => s.key), int(2, 5));
-    if (v.plan === "featured" && !subcities.includes("bole")) subcities[0] = "bole";
     const sections: Record<string, unknown> = {};
     for (const [k, [en, am]] of Object.entries(v.text ?? {})) sections[k] = { en, am };
     for (const [k, tags] of Object.entries(v.tags ?? {})) sections[k] = { tags };
@@ -190,9 +188,9 @@ async function main() {
     const phone = `+2519${String(10000000 + i * 1234567).slice(0, 8)}`;
     const look = v.plan === "featured" ? pick(["gold", "night", "modern"]) : pick(["classic", "modern", "bold"]);
     const r = await pool.query(
-      `INSERT INTO vendors (slug, name, name_am, category, subcities, look, bio, bio_am, sections, phone, telegram, whatsapp, starting_price, status, verified, verified_at, manage_token, created_at, admin_note)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17, now() - ($18 || ' days')::interval, $19) RETURNING id`,
-      [slug, v.name, v.am, v.cat, subcities, look, v.bio, v.bioAm, JSON.stringify(sections), phone,
+      `INSERT INTO vendors (slug, name, name_am, category, look, bio, bio_am, sections, phone, telegram, whatsapp, starting_price, status, verified, verified_at, manage_token, created_at, admin_note)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16, now() - ($17 || ' days')::interval, $18) RETURNING id`,
+      [slug, v.name, v.am, v.cat, look, v.bio, v.bioAm, JSON.stringify(sections), phone,
         rnd() > 0.2 ? slug.replace(/-/g, "_").slice(0, 24) : null, rnd() > 0.4 ? phone : null,
         Math.min(...v.pkgs.map((p) => p[2])), v.status ?? "approved", !!v.verified, v.verified ? new Date(Date.now() - int(1, 60) * 86400000) : null,
         `demo-${slug}`, String(v.status === "pending" ? int(0, 2) : int(20, 200)),
@@ -267,9 +265,7 @@ async function main() {
       await pool.query("INSERT INTO subscriptions (vendor_id, plan, term, status, starts_on, ends_on, amount, chapa_ref) VALUES ($1,$2,$3,'active',$4,$5,$6,$7)",
         [id, plan, term, start, end, amount, amount ? `CHAPA-TX-${randomBytes(4).toString("hex").toUpperCase()}` : null]);
       if (plan === "featured") {
-        for (const sc of subcities.slice(0, 2)) {
-          await pool.query("INSERT INTO sponsored_slots (category, subcity, month, vendor_id) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING", [v.cat, sc, month, id]);
-        }
+        await pool.query("INSERT INTO sponsored_slots (category, month, vendor_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [v.cat, month, id]);
       }
     }
   }

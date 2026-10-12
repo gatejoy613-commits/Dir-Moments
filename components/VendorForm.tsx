@@ -1,5 +1,5 @@
 import type { Lang } from "@/lib/catalog";
-import { category, SUBCITIES } from "@/lib/catalog";
+import { category } from "@/lib/catalog";
 import { LOOKS, template } from "@/lib/templates";
 import { TIERS, type Plan } from "@/lib/tiers";
 import type { ItemRow, PackageRow, VendorRow } from "@/lib/vendors";
@@ -22,7 +22,6 @@ const T = {
   phone: { en: "Phone number for calls", am: "ለጥሪ ስልክ ቁጥር" },
   telegram: { en: "Telegram username (optional)", am: "የቴሌግራም ስም (አማራጭ)" },
   whatsapp: { en: "WhatsApp number (optional)", am: "የዋትስአፕ ቁጥር (አማራጭ)" },
-  subcities: { en: "Sub-cities you serve", am: "የሚሰሩባቸው ክፍለ ከተሞች" },
   bio: { en: "About you in English", am: "ስለ እርስዎ በእንግሊዝኛ" },
   bioAm: { en: "About you in Amharic", am: "ስለ እርስዎ በአማርኛ" },
   bioHint: { en: "Two or three sentences: experience, style, what makes you different.", am: "ሁለት ሶስት ዓረፍተ ነገሮች፦ ልምድ፣ አይነት፣ ልዩነትዎ።" },
@@ -67,14 +66,6 @@ export function VendorForm({ categoryKey, lang, action, vendor, packages = [], i
         <div className="field"><label>{tr("phone")}</label><input type="tel" name="phone" required placeholder="09XX XXX XXX" defaultValue={vendor?.phone} /></div>
         <div className="field"><label>{tr("telegram")}</label><input type="text" name="telegram" placeholder="@yourname" defaultValue={vendor?.telegram ?? ""} /></div>
         <div className="field"><label>{tr("whatsapp")}</label><input type="tel" name="whatsapp" placeholder="09XX XXX XXX" defaultValue={vendor?.whatsapp ?? ""} /></div>
-        <div className="field">
-          <label>{tr("subcities")}</label>
-          <div className="checks">
-            {SUBCITIES.map((s) => (
-              <label key={s.key}><input type="checkbox" name="subcities" value={s.key} defaultChecked={vendor?.subcities.includes(s.key)} /> {s.name[lang]}</label>
-            ))}
-          </div>
-        </div>
         <div className="field">
           <label>{tr("bio")}</label>
           <textarea name="bio" maxLength={3000} defaultValue={vendor?.bio} placeholder={tr("bioHint")} />

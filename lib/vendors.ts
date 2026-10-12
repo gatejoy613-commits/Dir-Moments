@@ -1,5 +1,6 @@
 import { q, one } from "./db";
 import { template } from "./templates";
+import { occasionCategories } from "./catalog";
 import { todayAddis } from "./ethiopian";
 import {
   type Plan, SPONSORED_PER_PAGE, SPONSOR_MIN_RATING, SPONSOR_MAX_NO_SHOWS,
@@ -11,7 +12,6 @@ export type VendorRow = {
   name: string;
   name_am: string | null;
   category: string;
-  subcities: string[];
   look: string;
   bio: string;
   bio_am: string;
@@ -61,7 +61,6 @@ export function completeness(v: VendorRow): number {
   const t = template(v.category);
   const checks: boolean[] = [
     v.bio.trim().length + v.bio_am.trim().length > 40,
-    v.subcities.length > 0,
     !!(v.telegram || v.whatsapp),
     v.starting_price != null,
     !!v.cover_url,
@@ -90,7 +89,8 @@ function dailyRotate<T extends { id: number }>(items: T[], salt: string) {
 
 export type SearchParams = {
   category?: string;
-  subcity?: string;
+  /** A client-facing occasion (wedding, graduation...). Widens to the categories booked for it. */
+  occasion?: string;
   date?: string;
   minRating?: number;
   maxPrice?: number;
@@ -130,7 +130,10 @@ export async function searchVendors(p: SearchParams) {
   const params: unknown[] = [today];
   const where = ["v.status = 'approved'"];
   if (p.category) { params.push(p.category); where.push(`v.category = $${params.length}`); }
-  if (p.subcity) { params.push(p.subcity); where.push(`$${params.length} = ANY(v.subcities)`); }
+  else if (p.occasion) {
+    const cats = occasionCategories(p.occasion);
+    if (cats.length) { params.push(cats); where.push(`v.category = ANY($${params.length})`); }
+  }
   if (p.date) {
     params.push(p.date);
     where.push(`NOT EXISTS (SELECT 1 FROM availability a WHERE a.vendor_id = v.id AND a.day = $${params.length}::date)`);
@@ -154,7 +157,6 @@ export async function searchVendors(p: SearchParams) {
     const slotParams: unknown[] = [month];
     let slotWhere = "month = $1";
     if (p.category) { slotParams.push(p.category); slotWhere += ` AND category = $${slotParams.length}`; }
-    if (p.subcity) { slotParams.push(p.subcity); slotWhere += ` AND subcity = $${slotParams.length}`; }
     const slotVendors = new Set(
       (await q<{ vendor_id: number }>(`SELECT DISTINCT vendor_id FROM sponsored_slots WHERE ${slotWhere}`, slotParams)).map((r) => r.vendor_id),
     );
@@ -183,6 +185,22 @@ export async function recentlyVerified(limit = 6) {
     `${VENDOR_SELECT} WHERE v.status = 'approved' AND v.verified ORDER BY v.verified_at DESC NULLS LAST LIMIT ${limit}`,
     [todayAddis()],
   );
+}
+
+/**
+ * Headline counts for the landing page. A directory lives or dies on looking
+ * inhabited, so these are read live rather than hard-coded. One round trip,
+ * because the database may be remote.
+ */
+export async function siteStats() {
+  const r = await one<{ vendors: number; verified: number; categories: number; founding_used: number }>(
+    `SELECT
+       (SELECT count(*) FROM vendors WHERE status = 'approved')::int AS vendors,
+       (SELECT count(*) FROM vendors WHERE status = 'approved' AND verified)::int AS verified,
+       (SELECT count(DISTINCT category) FROM vendors WHERE status = 'approved')::int AS categories,
+       (SELECT count(DISTINCT vendor_id) FROM subscriptions WHERE term = 'founding')::int AS founding_used`,
+  );
+  return r!;
 }
 
 export async function categoryCounts() {

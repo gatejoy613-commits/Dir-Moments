@@ -3,7 +3,6 @@ import type { Lang } from "./catalog";
 const ERRORS: Record<string, { en: string; am: string }> = {
   name: { en: "Please enter your business name.", am: "እባክዎ የስራ ስምዎን ያስገቡ።" },
   phone: { en: "Please enter a valid Ethiopian phone number, like 0911 234 567.", am: "እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ፣ ለምሳሌ 0911 234 567።" },
-  subcities: { en: "Pick at least one sub-city you serve.", am: "ቢያንስ አንድ ክፍለ ከተማ ይምረጡ።" },
   category: { en: "Pick a category.", am: "ዘርፍ ይምረጡ።" },
 };
 

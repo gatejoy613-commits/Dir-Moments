@@ -1,28 +1,22 @@
 import type { Lang } from "@/lib/catalog";
-import { CATEGORIES, SUBCITIES } from "@/lib/catalog";
+import { CATEGORIES } from "@/lib/catalog";
 import { translator } from "@/lib/i18n";
 import { dualDate } from "@/lib/ethiopian";
 
-export type Filters = { category?: string; subcity?: string; date?: string; q?: string; maxPrice?: string; minRating?: string; verified?: string };
+export type Filters = { occasion?: string; category?: string; date?: string; q?: string; maxPrice?: string; minRating?: string; verified?: string };
 
 export function SearchForm({ f, lang, compact }: { f: Filters; lang: Lang; compact?: boolean }) {
   const t = translator(lang);
   const advanced = !!(f.maxPrice || f.minRating || f.verified || f.q);
   return (
     <form action="/vendors" method="get" className="card">
+      {f.occasion && <input type="hidden" name="occasion" value={f.occasion} />}
       <div className="filters">
         <div className="field">
           <label htmlFor="category">{t("categories")}</label>
           <select id="category" name="category" defaultValue={f.category ?? ""}>
             <option value="">{t("allCategories")}</option>
             {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.icon} {c.name[lang]}</option>)}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="subcity">{t("servesIn")}</label>
-          <select id="subcity" name="subcity" defaultValue={f.subcity ?? ""}>
-            <option value="">{t("anySubcity")}</option>
-            {SUBCITIES.map((s) => <option key={s.key} value={s.key}>{s.name[lang]}</option>)}
           </select>
         </div>
         <div className="field">
