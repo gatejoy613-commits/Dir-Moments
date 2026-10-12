@@ -169,9 +169,30 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 600; 
 .pager { display: flex; gap: .5rem; justify-content: center; margin-top: 1.5rem; }
 
 /* Profile */
-.profile-head { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-@media (min-width: 760px) { .profile-head { grid-template-columns: 1.3fr 1fr; align-items: start; } }
-.cover { aspect-ratio: 16/10; border-radius: var(--radius); background: #eee center/cover no-repeat; }
+.profile-head {
+  display: grid; gap: 1rem; grid-template-columns: 1fr;
+  padding: 1rem; border-radius: 18px; border: 1px solid rgba(29, 27, 25, .07);
+  box-shadow: var(--shadow);
+}
+@media (min-width: 760px) { .profile-head { grid-template-columns: 1.3fr 1fr; align-items: start; padding: 1.25rem; } }
+.cover { aspect-ratio: 16/10; border-radius: var(--radius); background: #f3efe9 center/cover no-repeat; }
+.profile-head h1 { margin-bottom: .1rem; }
+/* The price is the question every client opens with: let it carry weight. */
+.profile-price { font-size: 1.45rem; font-weight: 800; line-height: 1.1; }
+
+/* A rule in the profile's own look colour marks each template section. */
+.profile h2 { display: flex; align-items: center; gap: .5rem; }
+.profile h2::before {
+  content: ""; flex: none; width: 4px; height: 1.05em; border-radius: 2px; background: var(--accent);
+}
+.profile .review {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+  padding: .85rem 1rem; margin-bottom: .6rem; box-shadow: var(--shadow);
+}
+/* The category tint arrives as an inline style, which only !important can beat.
+   A pale tint on the Night look would be unreadable. */
+.look-night .profile-head { background: #20232a !important; border-color: #343841; }
+.look-night .review { background: #20232a; border-color: #343841; color: #eceae6; }
 .contact-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
 .contact-bar .btn { padding: .6rem .3rem; }
 @media (max-width: 759px) {
@@ -240,3 +261,23 @@ legend { font-weight: 700; padding: 0 .4rem; }
   .cat, .occasion, .vcard { transition: none; }
   .cat:hover, .occasion:hover, .vcard:hover { transform: none; }
 }
+
+/* Results page. The header repeats the tint of the category tile that led here. */
+.results-head {
+  display: flex; gap: .9rem; align-items: center;
+  margin: 1rem 0; padding: 1.1rem 1.25rem;
+  border: 1px solid rgba(29, 27, 25, .07); border-radius: 18px; box-shadow: var(--shadow);
+}
+.results-head h1 { margin: 0; font-size: 1.45rem; }
+.results-icon { font-size: 2rem; line-height: 1; flex: none; }
+.results-meta { margin: .15rem 0 0; color: var(--muted); }
+@media (min-width: 720px) { .results-head { padding: 1.4rem 1.6rem; } .results-head h1 { font-size: 1.8rem; } }
+
+.empty {
+  text-align: center; padding: 2.5rem 1.25rem; margin-top: 1rem;
+  background: linear-gradient(170deg, #fdf4e8 0%, var(--surface) 90%);
+  border: 1px solid #f2e5d6; border-radius: 18px; box-shadow: var(--shadow);
+}
+.empty-icon { font-size: 2.4rem; display: block; margin-bottom: .4rem; }
+.empty h2 { margin-top: 0; }
+.empty p { max-width: 42ch; margin-left: auto; margin-right: auto; }

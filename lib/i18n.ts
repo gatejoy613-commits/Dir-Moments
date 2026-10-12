@@ -104,6 +104,11 @@ const DICT = {
   occasionsTitle: { en: "What are you celebrating?", am: "ምን እያከበሩ ነው?" },
   occasionsLede: { en: "Start with the day you are planning and we will show the people who make it happen.", am: "እያቀዱት ባለው ዝግጅት ይጀምሩ፤ የሚያስፈልጉዎትን ባለሙያዎች እናሳይዎታለን።" },
   occasionNote: { en: "The vendors people usually book for this celebration.", am: "ለዚህ ክብረ በዓል አብዛኛውን ጊዜ የሚፈለጉ ባለሙያዎች።" },
+
+  // Results and profile pages.
+  inAddis: { en: "in Addis Ababa", am: "በአዲስ አበባ" },
+  browseAll: { en: "See all vendors", am: "ሁሉንም ባለሙያዎች ይመልከቱ" },
+  noResultsTitle: { en: "Nothing matches yet", am: "እስካሁን ምንም አልተገኘም" },
 } satisfies Record<string, L>;
 
 export type DictKey = keyof typeof DICT;
