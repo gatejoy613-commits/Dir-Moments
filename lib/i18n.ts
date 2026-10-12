@@ -3,7 +3,7 @@ import type { L, Lang } from "./catalog";
 
 // Amharic copy is a first draft and needs review by a native speaker before launch.
 const DICT = {
-  appName: { en: "Addis Events", am: "አዲስ ኢቨንትስ" },
+  appName: { en: "Dir Moments", am: "ድር ሞመንትስ" },
   tagline: { en: "Find photographers, DJs, decorators and more for your event in Addis Ababa. Contact them directly, free.", am: "ለዝግጅትዎ ፎቶግራፈር፣ ዲጄ፣ ዲኮር እና ሌሎችን በአዲስ አበባ ያግኙ። በቀጥታ ያግኟቸው፣ በነጻ።" },
   browse: { en: "Browse", am: "ፈልግ" },
   listBusiness: { en: "List your business", am: "ስራዎን ያስመዝግቡ" },
