@@ -50,6 +50,46 @@ npm run dev                   # http://localhost:3000
 
 For production: `npm run build && npm start`.
 
+## Deploying
+
+`netlify.toml` configures a Netlify deploy. Next.js needs no plugin block there:
+Netlify detects the framework and installs the adapter itself.
+
+Set these in Site configuration > Environment variables, with **both** the Builds
+and Functions scopes ticked (the app reads them at request time, not just at
+build time):
+
+| Variable | Notes |
+| --- | --- |
+| `DATABASE_URL` | **Must be a pooler string, not the direct one.** See below. |
+| `SESSION_SECRET` | A long random string. Generate a fresh one; do not reuse the local value. |
+| `ADMIN_PASSWORD` | Likewise. |
+| `SUPABASE_URL` | `https://<project-ref>.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only. Never expose it to the browser. |
+
+### The direct database connection does not work on serverless hosts
+
+`db.<project-ref>.supabase.co` resolves to an **IPv6 address only**. Netlify
+functions run on AWS Lambda, which has no IPv6 egress, so a direct connection
+string deploys fine and then fails on the first query of every page.
+
+Use a **pooler** string instead, from the Supabase dashboard's Connect dialog.
+Pooler hosts are IPv4. Transaction mode (port 6543) is the one meant for
+serverless; the host cannot be derived from the region, so copy it from the
+dialog rather than guessing.
+
+A direct connection is still the better choice locally, where it has none of
+these constraints.
+
+### Two things to watch
+
+- `lib/db.ts` opens a pool of up to 10 connections per instance. That is sized
+  for one long-lived server, not for many short-lived function instances; lower
+  it if Supabase starts refusing connections.
+- A free Supabase project **pauses after 7 days without activity** and needs a
+  manual unpause from the dashboard. A quiet pilot week takes the site down.
+
+
 Try it:
 - Home: `/`, search: `/vendors?category=photographer&subcity=bole`
 - A Featured profile: `/v/afro-addis-band`
