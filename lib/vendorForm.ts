@@ -86,7 +86,11 @@ export async function saveVendorForm(fd: FormData, existing: VendorRow | null, o
       vendorId = existing.id; slug = existing.slug; token = existing.manage_token;
       await client.query(
         `UPDATE vendors SET name=$1, name_am=$2, look=$3, bio=$4, bio_am=$5, sections=$6,
-           phone=$7, email=$8, telegram=$9, whatsapp=$10, starting_price=$11, updated_at=now() WHERE id=$12`,
+           phone=$7, email=$8, telegram=$9, whatsapp=$10, starting_price=$11, updated_at=now(),
+           -- A rejected vendor who fixes their profile goes back into the approval
+           -- queue; otherwise it would wait until an admin happened to look it up.
+           status = CASE WHEN status = 'rejected' THEN 'pending' ELSE status END
+         WHERE id=$12`,
         [...values, vendorId],
       );
     } else {

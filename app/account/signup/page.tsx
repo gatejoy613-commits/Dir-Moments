@@ -5,6 +5,7 @@ import { setUserSession } from "@/lib/auth";
 import { createAccount, currentProfile, passwordProblem, type Role } from "@/lib/accounts";
 import { homeFor } from "@/lib/roles";
 import { str } from "@/lib/util";
+import { allow, BUSY, clientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Create an account", robots: { index: false } };
@@ -18,6 +19,7 @@ async function signUp(fd: FormData) {
   // role in the database, never by anything a visitor can post.
   const role: Role = str(fd.get("role")) === "vendor" ? "vendor" : "customer";
 
+  if (!(await allow(`signup:ip:${await clientIp()}`, 5, 3600))) redirect("/account/signup?error=busy");
   if (!name) redirect("/account/signup?error=name");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) redirect("/account/signup?error=email");
   if (passwordProblem(password)) redirect("/account/signup?error=weak");
@@ -42,6 +44,7 @@ export default async function SignUp({ searchParams }: { searchParams: Promise<{
     weak: ["Use at least 8 characters for your password.", "የይለፍ ቃልዎ ቢያንስ 8 ፊደል ይሁን።"],
     taken: ["That email already has an account. Sign in instead.", "ይህ ኢሜይል አስቀድሞ አካውንት አለው። ይግቡ።"],
     failed: ["We could not create the account just now. Please try again.", "አካውንቱን መፍጠር አልቻልንም። እንደገና ይሞክሩ።"],
+    busy: [BUSY.en, BUSY.am],
   };
   const err = sp.error ? errors[sp.error] : undefined;
   const asVendor = sp.as === "vendor";

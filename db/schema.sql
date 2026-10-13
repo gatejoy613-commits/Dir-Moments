@@ -175,3 +175,13 @@ END $$;
 ALTER TABLE vendors ADD COLUMN IF NOT EXISTS user_id UUID;
 ALTER TABLE reviews ADD COLUMN IF NOT EXISTS user_id UUID;
 CREATE INDEX IF NOT EXISTS vendors_user_idx ON vendors (user_id);
+
+-- 2026-10: rate limits. Fixed-window counters keyed by action and client (see
+-- lib/rateLimit.ts). Rows older than a day are pruned by the app as it goes.
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key           TEXT NOT NULL,
+  window_start  TIMESTAMPTZ NOT NULL,
+  n             INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (key, window_start)
+);
+CREATE INDEX IF NOT EXISTS rate_limits_window_idx ON rate_limits (window_start);

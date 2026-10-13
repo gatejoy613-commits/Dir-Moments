@@ -5,6 +5,7 @@ import { setUserSession } from "@/lib/auth";
 import { currentProfile, verifyPassword } from "@/lib/accounts";
 import { homeFor } from "@/lib/roles";
 import { str } from "@/lib/util";
+import { allowAll, BUSY, clientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Sign in", robots: { index: false } };
@@ -12,6 +13,11 @@ export const metadata = { title: "Sign in", robots: { index: false } };
 async function signIn(fd: FormData) {
   "use server";
   const email = str(fd.get("email")).toLowerCase();
+  // Per address as well as per IP, so a password cannot be guessed from many IPs.
+  const ip = await clientIp();
+  if (!(await allowAll([`signin:ip:${ip}`, 20, 900], [`signin:email:${email}`, 10, 900]))) {
+    redirect("/account/signin?error=busy");
+  }
   const profile = await verifyPassword(email, str(fd.get("password")));
   // One message for a wrong password and for an unknown address, so this form
   // cannot be used to find out who has an account here.
@@ -43,7 +49,7 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
           )}
         </div>
       )}
-      {sp.error && <div className="notice error">{am ? "ኢሜይል ወይም የይለፍ ቃል ትክክል አይደለም።" : "That email and password do not match."}</div>}
+      {sp.error && <div className="notice error">{sp.error === "busy" ? BUSY[lang] : am ? "ኢሜይል ወይም የይለፍ ቃል ትክክል አይደለም።" : "That email and password do not match."}</div>}
       {!me && <form action={signIn} className="card">
         <div className="field">
           <label htmlFor="email">{am ? "ኢሜይል" : "Email"}</label>

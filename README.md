@@ -5,30 +5,32 @@ A free, commission-free directory of event vendors in Addis Ababa. Clients find 
 ## What's in v1.0
 
 **Clients**
-- Browse and search by category, sub-city, event date (hides vendors booked that day), max starting price, minimum rating, verified only, and free text.
-- Results show up to 3 **Sponsored** vendors (Featured plan + a sponsored slot for that category and sub-city this month + rating 3.5 or above + at most 1 no-show report), then everyone else ranked by rating, review count, profile completeness and verification, with a boost for Pro and Featured.
+- Browse and search by celebration (wedding, birthday, ...), category, max starting price, minimum rating, verified only, and free text.
+- Results show up to 3 **Sponsored** vendors (Featured plan + a sponsored slot for that category this month + rating 3.5 or above + at most 1 no-show report), then everyone else ranked by rating, review count, profile completeness and verification, with a boost for Pro and Featured.
 - Vendor profiles built from the category's **portfolio template** (10 templates, each with its own sections and prompts), in one of five looks (Classic, Modern, Bold free; Gold and Night for Pro and Featured).
+- Home page led by a slideshow of celebrations; vendor profiles open with a slideshow of the vendor's photos.
 - Contact buttons (call, Telegram, WhatsApp). Each tap is counted.
-- Availability calendar with Gregorian and **Ethiopian** dates.
-- Reviews with name and phone, held for moderation. Vendors can reply and flag; paying never removes a review.
+- Reviews from signed-in accounts, with a phone number that is never shown, held for moderation. One per phone or account per vendor. Vendors can reply and flag; paying never removes a review.
 - Amharic and English throughout (toggle in the header). Share to Telegram/WhatsApp. SEO metadata and schema.org data on vendor pages.
 
 **Vendors**
-- Sign up from a category template at `/join`. Signing up signs you in; an email address is the only account there is.
-- Sign in with a link emailed to them (no password), then at `/manage`: edit profile, upload photos (compressed to WebP automatically), mark busy dates, reply to and flag reviews, see stats (views for Free; contact taps and search appearances for Pro; category comparison for Featured), request Pro or Featured, or claim the founding offer (first 100 vendors: Pro free for 3 months).
+- Create an account (email and password) and build the profile from a category template at `/join`. A forgotten password is reset by an emailed link, valid for an hour.
+- At `/manage`: edit profile, upload photos (compressed to WebP automatically), reply to and flag reviews, see stats (views for Free; contact taps and search appearances for Pro; category comparison for Featured), request Pro or Featured, or claim the founding offer (first 100 vendors: Pro free for 3 months).
 - Plan limits enforced: photos, videos, packages, premium looks.
+- A rejected profile goes back into the approval queue when the vendor saves changes.
 
-**Admin** (`/admin`)
+**Admin** (`/admin`, accounts with the admin role)
 - Dashboard: live, verified and paying vendors, monthly subscription revenue, contact taps, views, vendors with 5+ leads, plans ending soon.
 - Approval queue with in-person verification badge.
 - Review moderation (pending and vendor-flagged).
 - Subscriptions: mark paid with a Chapa reference to activate (manual, as in the pilot), renewals due in 7 days.
-- Sponsored slot inventory per category, sub-city and month (max 5).
+- Sponsored slot inventory per category and month (max 15).
 - Per-vendor page: status, verification, no-show reports, notes, plans, slots.
 
 ## Not in v1 yet
 
-- SMS login. Vendors sign in by email; admin still uses one shared password.
+- Availability. Paused for this phase: vendors were not expected to keep busy dates up to date. The `availability` table, `components/Calendar.tsx` and the `date` option in `searchVendors` are still in place, just not shown anywhere, so it can be switched back on.
+- SMS login. Everyone signs in with email and password.
 - Chapa API and webhook (payments are recorded by hand, which matches the pilot plan).
 - Save and compare shortlists, in-app messages.
 - SMS reminders before a plan expires (the admin page lists who to remind).
@@ -37,15 +39,17 @@ A free, commission-free directory of event vendors in Addis Ababa. Clients find 
 
 ## Run it
 
-Requirements: Node 20+, PostgreSQL 14+, and a Supabase project for photo storage.
+Requirements: Node 20+, PostgreSQL 14+, a Supabase project (accounts and photo storage) and a Resend key (password reset email).
 
 ```bash
-cp .env.example .env          # set DATABASE_URL, ADMIN_PASSWORD, SESSION_SECRET
+cp .env.example .env          # set DATABASE_URL, SESSION_SECRET, Supabase and Resend keys
 createdb directory            # or use any Postgres database
 npm install
 npm run db:reset              # creates tables and seeds 36 sample vendors
 npm run storage:setup         # creates the public bucket photos are uploaded to
 npm run dev                   # http://localhost:3000
+# sign up at /account/signup, then make yourself an admin:
+npm run make-admin -- you@example.com
 ```
 
 For production: `npm run build && npm start`.
@@ -63,10 +67,9 @@ build time):
 | --- | --- |
 | `DATABASE_URL` | **Must be a pooler string, not the direct one.** See below. |
 | `SESSION_SECRET` | A long random string. Generate a fresh one; do not reuse the local value. |
-| `ADMIN_PASSWORD` | Likewise. |
 | `SUPABASE_URL` | `https://<project-ref>.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only. Never expose it to the browser. |
-| `RESEND_API_KEY` | Sends vendor sign-in links. Needs a verified domain to reach real addresses. |
+| `RESEND_API_KEY` | Sends password reset links. Needs a verified domain to reach real addresses. |
 | `MAIL_FROM` | e.g. `Dir Moments <login@yourdomain.com>` |
 
 ### The direct database connection does not work on serverless hosts
@@ -90,13 +93,16 @@ these constraints.
   it if Supabase starts refusing connections.
 - A free Supabase project **pauses after 7 days without activity** and needs a
   manual unpause from the dashboard. A quiet pilot week takes the site down.
+- Sign-in, sign-up, password reset, reviews and contact taps are rate limited
+  per IP (and per address or account) with counters in the `rate_limits`
+  table, so run `npm run db:migrate` after pulling this change.
 
 
 Try it:
-- Home: `/`, search: `/vendors?category=photographer&subcity=bole`
+- Home: `/`, search: `/vendors?occasion=wedding&category=photographer`
 - A Featured profile: `/v/afro-addis-band`
-- Vendor sign-in: `/manage/login` (seeded vendors use `<slug>@example.com`). Old `/manage/<token>` links still work and swap themselves for a session
-- Admin: `/admin`, password from `ADMIN_PASSWORD`
+- Accounts: `/account/signup` and `/account/signin`. Vendors land on `/manage`, admins on `/admin`
+- Seeded vendors have no accounts; sign up as a vendor to try `/manage`
 
 All seeded vendors, phone numbers and reviews are made up. Photos are generated placeholders.
 
@@ -108,9 +114,11 @@ Next.js 15 (App Router, server-rendered, server actions, works without JavaScrip
 
 ```
 app/            pages (public, /join, /manage, /admin) and small API routes
-components/     VendorCard, VendorForm, Calendar, ContactButtons, SearchForm
-lib/            catalog (categories, sub-cities), templates, tiers and prices,
-                vendors (queries, ranking, stats), ethiopian (calendar), i18n
+components/     VendorCard, VendorForm, SearchForm, Slideshow, Carousel,
+                ContactButtons, Calendar (unused while availability is paused)
+lib/            catalog (categories, celebrations), templates, tiers and prices,
+                vendors (queries, ranking, stats), accounts and auth, rateLimit,
+                ethiopian (calendar), i18n
 db/schema.sql   tables
 scripts/        migrate, seed, calendar check
 ```

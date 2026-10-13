@@ -6,6 +6,7 @@ import { signResetToken } from "@/lib/auth";
 import { profileByEmail } from "@/lib/accounts";
 import { sendPasswordReset } from "@/lib/email";
 import { str } from "@/lib/util";
+import { allow, BUSY, clientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Forgot password", robots: { index: false } };
@@ -14,7 +15,11 @@ async function requestReset(fd: FormData) {
   "use server";
   const { lang } = await i18n();
   const email = str(fd.get("email")).toLowerCase().slice(0, 160);
-  const profile = await profileByEmail(email);
+  if (!(await allow(`forgot:ip:${await clientIp()}`, 5, 3600))) redirect("/account/forgot?error=busy");
+  // Past the per-address limit nothing more is sent, but the page answers as
+  // usual, so the limit cannot reveal which addresses have accounts.
+  const underLimit = await allow(`forgot:email:${email}`, 3, 3600);
+  const profile = underLimit ? await profileByEmail(email) : null;
 
   // The answer is the same either way: saying "no such account" would turn this
   // form into a way to find out who is registered.
@@ -49,6 +54,7 @@ export default async function Forgot({ searchParams }: { searchParams: Promise<{
       ) : (
         <>
           <p className="muted">{am ? "የተመዘገቡበትን ኢሜይል ያስገቡ።" : "Enter the email you signed up with."}</p>
+          {sp.error === "busy" && <div className="notice error">{BUSY[lang]}</div>}
           {sp.error === "send" && (
             <div className="notice error">{am ? "መልእክቱን መላክ አልቻልንም። እንደገና ይሞክሩ።" : "We could not send the email just now. Please try again."}</div>
           )}
