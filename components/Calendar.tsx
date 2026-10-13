@@ -20,7 +20,7 @@ export function Calendar({
     months[months.length - 1].days.push(iso);
   }
   return (
-    <div className="stack">
+    <div className="cal-months">
       {months.map((m) => {
         const first = parseIso(m.days[0]);
         const e1 = toEthiopian(first.y, first.m, first.d);
@@ -30,8 +30,8 @@ export function Calendar({
           ? `${ethMonthName(e1.month, lang)} ${e1.year}`
           : `${ethMonthName(e1.month, lang)} – ${ethMonthName(e2.month, lang)} ${e2.year}`;
         return (
-          <div key={m.key}>
-            <div className="spread small"><b>{GM[first.m - 1]} {first.y}</b><span className="muted">{ethTitle}</span></div>
+          <div key={m.key} className="cal-month">
+            <div className="cal-title"><b>{GM[first.m - 1]} {first.y}</b><span className="muted">{ethTitle}</span></div>
             <div className="cal">
               {WD[lang].map((w, i) => <div key={i} className="wd">{w}</div>)}
               {Array.from({ length: weekday(m.days[0]) }).map((_, i) => <div key={`p${i}`} className="d pad" />)}

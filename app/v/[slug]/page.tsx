@@ -5,13 +5,13 @@ import Link from "next/link";
 import { category, EVENT_TYPES } from "@/lib/catalog";
 import { etb, i18n } from "@/lib/i18n";
 import { template, type Section } from "@/lib/templates";
-import { todayAddis } from "@/lib/ethiopian";
 import { recordView, vendorBy, vendorDetail, type ItemRow, type PackageRow } from "@/lib/vendors";
 import { q } from "@/lib/db";
 import { currentProfile, isAdmin } from "@/lib/accounts";
 import { normalisePhone, str } from "@/lib/util";
-import { ContactButtons } from "@/components/ContactButtons";
-import { Calendar } from "@/components/Calendar";
+import { allowAll, BUSY, clientIp } from "@/lib/rateLimit";
+import { CallPill, ContactButtons } from "@/components/ContactButtons";
+import { Slideshow, type Slide } from "@/components/Slideshow";
 import { Stars } from "@/components/Stars";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +41,9 @@ async function submitReview(fd: FormData) {
   if (!me) redirect("/account/signin?denied=1");
   const vendorId = Number(fd.get("vendorId"));
   const slug = str(fd.get("slug"));
+  if (!(await allowAll([`review:ip:${await clientIp()}`, 10, 3600], [`review:user:${me.id}`, 5, 3600]))) {
+    redirect(`/v/${slug}?review=busy#review-form`);
+  }
   const name = (me.name || me.email).slice(0, 80);
   const phone = normalisePhone(str(fd.get("phone")));
   const rating = Number(fd.get("rating"));
@@ -104,7 +107,7 @@ export default async function VendorPage({ params, searchParams }: { params: Par
   if (preview && sp.preview !== v.manage_token && !(await isAdmin())) notFound();
   if (!preview) await recordView(v.id);
 
-  const { packages, items, busy, reviews } = await vendorDetail(v.id);
+  const { packages, items, reviews } = await vendorDetail(v.id);
   const me = await currentProfile();
   const tpl = template(v.category)!;
   const cat = category(v.category)!;
@@ -112,6 +115,11 @@ export default async function VendorPage({ params, searchParams }: { params: Par
   const bio = (lang === "am" && v.bio_am) || v.bio;
   const h = await headers();
   const url = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}/v/${v.slug}`;
+
+  const showcase: Slide[] = [
+    ...(v.cover_url ? [{ src: v.cover_url, alt: v.name }] : []),
+    ...items.filter((i) => i.kind === "photo" && i.url !== v.cover_url).map((i) => ({ src: i.url, alt: i.caption ?? v.name })),
+  ].slice(0, 8);
 
   const renderSection = (s: Section) => {
     const answer = v.sections[s.key];
@@ -143,7 +151,6 @@ export default async function VendorPage({ params, searchParams }: { params: Par
     return text ? <p style={{ whiteSpace: "pre-line" }}>{text}</p> : null;
   };
 
-  const today = todayAddis();
   const jsonLd = {
     "@context": "https://schema.org", "@type": "LocalBusiness", name: v.name, url, telephone: v.phone,
     image: v.cover_url ?? undefined, address: { "@type": "PostalAddress", addressLocality: "Addis Ababa", addressCountry: "ET" },
@@ -151,96 +158,111 @@ export default async function VendorPage({ params, searchParams }: { params: Par
   };
 
   return (
-    <div className={`profile look-${v.look}`} style={{ marginTop: "1rem" }}>
+    <div className={`profile look-${v.look}`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {/* A product page's local nav: the name and a way to call stay in reach all the way down. */}
+      <nav className="localnav bleed" aria-label={name}>
+        <div className="inner">
+          <span className="ln-title">{name}</span>
+          <span className="ln-links">
+            {bio && <a href="#about">{t("about")}</a>}
+            <a href="#reviews">{lang === "am" ? "አስተያየቶች" : "Reviews"}</a>
+          </span>
+          <CallPill vendorId={v.id} phone={v.phone} label={t("call")} />
+        </div>
+      </nav>
       {preview && (
-        <div className="notice warn" style={{ marginBottom: "1rem" }}>
+        <div className="notice warn" style={{ marginTop: "1rem" }}>
           {lang === "am" ? "ቅድመ እይታ፦ ይህ መገለጫ ገና አልጸደቀም።" : `Preview: this profile is ${v.status} and not visible to clients yet.`}
         </div>
       )}
-      {/* Tinted with the vendor's own category, so arriving from a category tile feels continuous. */}
-      <div className="profile-head" style={{ background: `linear-gradient(160deg, ${cat.tint} 0%, ${cat.tint} 45%, var(--surface) 100%)` }}>
-        <div className="cover" style={{ backgroundImage: v.cover_url ? `url("${v.cover_url}")` : undefined }} role="img" aria-label={v.name} />
-        <div className="stack">
-          <div className="row">
-            <Link href={`/vendors?category=${v.category}`} className="tag">{cat.icon} {cat.one[lang]}</Link>
-            {v.verified && <span className="tag verified" title={t("verifiedHelp")}>✓ {t("verified")}</span>}
-            {v.plan !== "free" && <span className="tag plan">{v.plan === "featured" ? "★ Featured" : "Pro"}</span>}
-          </div>
-          <h1>{name}</h1>
-          {lang === "en" && v.name_am && <div className="muted">{v.name_am}</div>}
-          <div>{v.review_count > 0 ? <Stars rating={v.rating} count={v.review_count} label={t("reviews")} /> : <span className="small muted">{t("noReviews")}</span>}</div>
-          {v.starting_price != null && <div><span className="muted small">{t("from")}</span> <b className="profile-price">{etb(v.starting_price, lang)}</b></div>}
-          <div className="contact-sticky">
-            <ContactButtons vendorId={v.id} phone={v.phone} telegram={v.telegram} whatsapp={v.whatsapp}
-              labels={{ call: t("call"), telegram: t("telegram"), whatsapp: t("whatsapp") }} />
-          </div>
-          <div className="row small">
-            <span className="muted">{t("share")}:</span>
-            <a href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(v.name)}`} target="_blank" rel="noopener">Telegram</a>
-            <a href={`https://wa.me/?text=${encodeURIComponent(`${v.name} ${url}`)}`} target="_blank" rel="noopener">WhatsApp</a>
-          </div>
+
+      <header className="p-hero">
+        <div className="row">
+          <Link href={`/vendors?category=${v.category}`} className="tag">{cat.icon} {cat.one[lang]}</Link>
+          {v.verified && <span className="tag verified" title={t("verifiedHelp")}>✓ {t("verified")}</span>}
+          {v.plan !== "free" && <span className="tag plan">{v.plan === "featured" ? "★ Featured" : "Pro"}</span>}
         </div>
+        <h1>{name}</h1>
+        {lang === "en" && v.name_am && <div className="alt-name">{v.name_am}</div>}
+        <div className="rating">{v.review_count > 0 ? <a href="#reviews" style={{ color: "inherit" }}><Stars rating={v.rating} count={v.review_count} label={t("reviews")} /></a> : <span className="small muted">{t("noReviews")}</span>}</div>
+        {v.starting_price != null && <p className="p-price">{t("from")} <b className="profile-price">{etb(v.starting_price, lang)}</b></p>}
+        <ContactButtons vendorId={v.id} phone={v.phone} telegram={v.telegram} whatsapp={v.whatsapp}
+          labels={{ call: t("call"), telegram: t("telegram"), whatsapp: t("whatsapp") }} />
+        <div className="share">
+          <span>{t("share")}</span>
+          <a href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(v.name)}`} target="_blank" rel="noopener">Telegram</a>
+          <a href={`https://wa.me/?text=${encodeURIComponent(`${v.name} ${url}`)}`} target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </header>
+
+      {/* The cover, then the vendor's own work, as a slideshow. */}
+      <div className="p-cover open-out">
+        {showcase.length > 0
+          ? <Slideshow slides={showcase} variant="photos" interval={4500} label={`${name}: ${t("photos")}`}
+              labels={{ prev: t("prev"), next: t("next"), pause: t("pause"), play: t("play"), goTo: t("goToSlide"), of: t("slideOf") }} />
+          : <div className="cover" role="img" aria-label={v.name} />}
       </div>
 
-      {bio && (<><h2>{t("about")}</h2><p style={{ whiteSpace: "pre-line" }}>{bio}</p></>)}
+      {bio && (<section><h2 id="about" className="rise">{t("about")}</h2><p className="prose">{bio}</p></section>)}
 
       {tpl.sections.map((s) => {
         const content = renderSection(s);
-        return content ? <section key={s.key}><h2>{s.title[lang]}</h2>{content}</section> : null;
+        return content ? <section key={s.key}><h2 className="rise">{s.title[lang]}</h2>{content}</section> : null;
       })}
 
-      <h2>{t("availability")}</h2>
-      <p className="small muted">{t("availabilityHelp")}</p>
-      <Calendar start={today} days={70} busy={busy} lang={lang} />
-
-      <h2 id="reviews">{lang === "am" ? "አስተያየቶች" : "Reviews"} {v.review_count > 0 && <Stars rating={v.rating} count={v.review_count} />}</h2>
-      {sp.review === "thanks" && <div className="notice">{t("reviewThanks")}</div>}
-      {reviews.length === 0 && <p className="muted">{t("noReviews")}</p>}
-      {reviews.map((r) => (
-        <div key={r.id} className="review">
-          <div className="spread">
-            <b>{r.reviewer_name}</b>
-            <span className="small muted">{r.created_at.toISOString().slice(0, 10)}</span>
-          </div>
-          <div className="row small">
-            <Stars rating={r.rating} />
-            {r.event_type && <span className="tag">{EVENT_TYPES.find((e) => e.key === r.event_type)?.name[lang]}</span>}
-            {r.status === "flagged" && <span className="tag" title="The vendor asked us to check this review">{t("underReview")}</span>}
-          </div>
-          <p style={{ marginTop: ".3rem" }}>{r.body}</p>
-          {r.vendor_reply && <div className="reply"><b className="small">{t("vendorReply")}</b><div>{r.vendor_reply}</div></div>}
+      <section>
+        <h2 id="reviews" className="rise">{lang === "am" ? "አስተያየቶች" : "Reviews"}{v.review_count > 0 && <> <span className="tone">{v.rating.toFixed(1)} ★</span></>}</h2>
+        {sp.review === "thanks" && <div className="notice" style={{ marginBottom: "1rem" }}>{t("reviewThanks")}</div>}
+        {reviews.length === 0 && <p className="muted">{t("noReviews")}</p>}
+        <div className="reviews">
+          {reviews.map((r) => (
+            <div key={r.id} className="review">
+              <div className="spread">
+                <span className="who">{r.reviewer_name}</span>
+                <span className="small muted">{r.created_at.toISOString().slice(0, 10)}</span>
+              </div>
+              <div className="row small" style={{ marginTop: ".2rem" }}>
+                <Stars rating={r.rating} />
+                {r.event_type && <span className="tag">{EVENT_TYPES.find((e) => e.key === r.event_type)?.name[lang]}</span>}
+                {r.status === "flagged" && <span className="tag" title="The vendor asked us to check this review">{t("underReview")}</span>}
+              </div>
+              <p style={{ marginTop: ".6rem", marginBottom: 0 }}>{r.body}</p>
+              {r.vendor_reply && <div className="reply"><b className="small">{t("vendorReply")}</b><div>{r.vendor_reply}</div></div>}
+            </div>
+          ))}
         </div>
-      ))}
 
-      {!preview && !me && (
-        <div className="notice" style={{ marginTop: ".75rem" }}>
-          {lang === "am" ? "አስተያየት ለመጻፍ አካውንት ያስፈልጋል።" : "You need an account to leave a review."}{" "}
-          <Link href="/account/signin">{lang === "am" ? "ይግቡ" : "Sign in"}</Link>
-          {" · "}
-          <Link href="/account/signup">{lang === "am" ? "ይመዝገቡ" : "Create one"}</Link>
-        </div>
-      )}
+        {!preview && !me && (
+          <div className="notice" style={{ marginTop: "1.25rem" }}>
+            {lang === "am" ? "አስተያየት ለመጻፍ አካውንት ያስፈልጋል።" : "You need an account to leave a review."}{" "}
+            <Link href="/account/signin">{lang === "am" ? "ይግቡ" : "Sign in"}</Link>
+            {" · "}
+            <Link href="/account/signup">{lang === "am" ? "ይመዝገቡ" : "Create one"}</Link>
+          </div>
+        )}
 
-      {!preview && me && (
-        <details className="more" id="review-form" open={sp.review === "invalid"}>
-          <summary>{t("writeReview")}</summary>
-          {sp.review === "invalid" && <div className="notice error">{lang === "am" ? "እባክዎ ሁሉንም ይሙሉ፤ ትክክለኛ ስልክ ቁጥር ያስገቡ።" : "Please fill in every field with a valid Ethiopian phone number and at least a sentence."}</div>}
-          <p className="small muted">{t("reviewRules")}</p>
-          <form action={submitReview} className="card">
-            <input type="hidden" name="vendorId" value={v.id} />
-            <input type="hidden" name="slug" value={v.slug} />
-            <div className="field"><label>{t("yourPhone")}</label><input type="tel" name="phone" required placeholder="09…" />
-              <div className="hint">{lang === "am" ? "አይታተምም። ለማረጋገጥ ብቻ።" : "Not shown publicly. Used to check the review is real."}</div></div>
-            <div className="field"><label>{t("eventType")}</label>
-              <select name="eventType"><option value="">—</option>{EVENT_TYPES.map((e) => <option key={e.key} value={e.key}>{e.name[lang]}</option>)}</select></div>
-            <div className="field"><label>{t("rating")}</label>
-              <select name="rating" required defaultValue="5">{[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{"★".repeat(n)}</option>)}</select></div>
-            <div className="field"><label>{t("yourReview")}</label><textarea name="body" required minLength={10} maxLength={2000} /></div>
-            <button className="btn primary" type="submit">{t("submit")}</button>
-          </form>
-        </details>
-      )}
+        {!preview && me && (
+          <details className="more" id="review-form" open={sp.review === "invalid" || sp.review === "busy"} style={{ marginTop: "1.25rem" }}>
+            <summary>{t("writeReview")}</summary>
+            {sp.review === "busy" && <div className="notice error">{BUSY[lang]}</div>}
+            {sp.review === "invalid" && <div className="notice error">{lang === "am" ? "እባክዎ ሁሉንም ይሙሉ፤ ትክክለኛ ስልክ ቁጥር ያስገቡ።" : "Please fill in every field with a valid Ethiopian phone number and at least a sentence."}</div>}
+            <p className="small muted">{t("reviewRules")}</p>
+            <form action={submitReview} className="card">
+              <input type="hidden" name="vendorId" value={v.id} />
+              <input type="hidden" name="slug" value={v.slug} />
+              <div className="field"><label>{t("yourPhone")}</label><input type="tel" name="phone" required placeholder="09…" />
+                <div className="hint">{lang === "am" ? "አይታተምም። ለማረጋገጥ ብቻ።" : "Not shown publicly. Used to check the review is real."}</div></div>
+              <div className="field"><label>{t("eventType")}</label>
+                <select name="eventType"><option value="">—</option>{EVENT_TYPES.map((e) => <option key={e.key} value={e.key}>{e.name[lang]}</option>)}</select></div>
+              <div className="field"><label>{t("rating")}</label>
+                <select name="rating" required defaultValue="5">{[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{"★".repeat(n)}</option>)}</select></div>
+              <div className="field"><label>{t("yourReview")}</label><textarea name="body" required minLength={10} maxLength={2000} /></div>
+              <button className="btn primary" type="submit">{t("submit")}</button>
+            </form>
+          </details>
+        )}
+      </section>
     </div>
   );
 }

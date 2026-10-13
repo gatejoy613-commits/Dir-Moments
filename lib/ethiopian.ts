@@ -84,6 +84,15 @@ export function dualDate(iso: string, lang: Lang) {
     : `${wd} ${gregLabel(iso)} · ${ethLabel(iso, "en")} E.C.`;
 }
 
+const WEEKDAYS_LONG = {
+  en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  am: WEEKDAYS.am,
+};
+
+export function weekdayName(iso: string, lang: Lang) {
+  return WEEKDAYS_LONG[lang][weekday(iso)];
+}
+
 export function ethMonthName(month: number, lang: Lang) {
   return MONTHS[lang][month - 1];
 }

@@ -10,7 +10,7 @@ export default async function Pricing() {
     [am ? "ከቅጽ የተሰራ መገለጫ" : "Profile from a category template", "✓", "✓", "✓"],
     [am ? "ፎቶዎች / ቪዲዮዎች" : "Photos / videos", `${TIERS.free.photos} / ${TIERS.free.videos}`, `${TIERS.pro.photos} / ${TIERS.pro.videos}`, `${TIERS.featured.photos} / ${TIERS.featured.videos}`],
     [am ? "ፓኬጆች" : "Packages", "3", am ? "ያልተገደበ" : "Unlimited", am ? "ያልተገደበ" : "Unlimited"],
-    [am ? "የመገናኛ ቁልፎች፣ አስተያየቶች፣ ነጻ ቀናት" : "Contact buttons, reviews, availability", "✓", "✓", "✓"],
+    [am ? "የመገናኛ ቁልፎችና አስተያየቶች" : "Contact buttons and reviews", "✓", "✓", "✓"],
     [am ? "የተረጋገጠ ምልክት (በአካል ከተጣራ በኋላ)" : "Verified badge (after in-person check)", "✓", "✓", "✓"],
     [am ? "በፍለጋ ውስጥ ቦታ" : "Search ranking", am ? "መደበኛ" : "Normal", am ? "በዘርፉ ቅድሚያ" : "Boost within category", am ? "ከላይ \"ስፖንሰር\" ቦታዎች" : "Top \"Sponsored\" slots"],
     [am ? "ተጨማሪ ገጽታዎች" : "Premium looks", "—", "✓", "✓"],

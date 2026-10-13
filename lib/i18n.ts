@@ -26,7 +26,7 @@ const DICT = {
   reviews: { en: "reviews", am: "አስተያየቶች" },
   noReviews: { en: "No reviews yet", am: "እስካሁን አስተያየት የለም" },
   results: { en: "results", am: "ውጤቶች" },
-  noResults: { en: "No vendors match these filters. Try another date or sub-city.", am: "ምንም አልተገኘም። ሌላ ቀን ወይም ክፍለ ከተማ ይሞክሩ።" },
+  noResults: { en: "No vendors match these filters. Try another celebration, or clear a filter.", am: "ምንም አልተገኘም። ሌላ ዝግጅት ይሞክሩ ወይም ማጣሪያ ያንሱ።" },
   freeOn: { en: "Showing vendors free on", am: "ነጻ የሆኑ ባለሙያዎች በ" },
   next: { en: "Next", am: "ቀጣይ" },
   prev: { en: "Previous", am: "ቀዳሚ" },
@@ -37,7 +37,7 @@ const DICT = {
   availability: { en: "Availability", am: "ነጻ ቀናት" },
   booked: { en: "Booked", am: "ተይዟል" },
   free: { en: "Free", am: "ነጻ" },
-  availabilityHelp: { en: "Dates in red are already booked. Confirm with the vendor when you call.", am: "በቀይ ያሉት ቀናት ተይዘዋል። ሲደውሉ ያረጋግጡ።" },
+  availabilityHelp: { en: "Shaded dates are already booked. Confirm with the vendor when you call.", am: "የተሸፈኑት ቀናት ተይዘዋል። ሲደውሉ ያረጋግጡ።" },
   writeReview: { en: "Write a review", am: "አስተያየት ይጻፉ" },
   yourName: { en: "Your name", am: "ስምዎ" },
   yourPhone: { en: "Your phone number", am: "ስልክ ቁጥርዎ" },
@@ -62,7 +62,7 @@ const DICT = {
 
   // Landing page. The brand no longer says "Addis" or "Events", so the copy
   // has to carry what the site is on its own.
-  heroTitle: { en: "Find the right people for your event", am: "ለዝግጅትዎ ትክክለኛውን ባለሙያ ያግኙ" },
+  heroTitle: { en: "Find the right people for your celebration.", am: "ለዝግጅትዎ ትክክለኛውን ባለሙያ ያግኙ።" },
   heroLede: {
     en: "Photographers, videographers, makeup artists, decorators, DJs, bands and more across Addis Ababa. Contact them directly.",
     am: "ፎቶግራፈሮች፣ ቪዲዮግራፈሮች፣ የሜካፕ ባለሙያዎች፣ ዲኮር፣ ዲጄዎች፣ ባንዶችና ሌሎች በአዲስ አበባ። በቀጥታ ያግኟቸው።",
@@ -78,8 +78,8 @@ const DICT = {
   howItWorks: { en: "How it works", am: "እንዴት ይሰራል" },
   step1Title: { en: "Search", am: "ይፈልጉ" },
   step1Body: {
-    en: "Pick a category, a sub-city and your event date. Vendors already booked that day are hidden.",
-    am: "ዘርፍ፣ ክፍለ ከተማና የዝግጅትዎን ቀን ይምረጡ። በዚያ ቀን የተያዙ ባለሙያዎች አይታዩም።",
+    en: "Pick what you are celebrating and who you need. We show the vendors usually booked for it.",
+    am: "የሚያከብሩትን እና የሚያስፈልግዎትን ባለሙያ ይምረጡ። ለዚያ ዝግጅት የሚፈለጉ ባለሙያዎችን እናሳይዎታለን።",
   },
   step2Title: { en: "Compare", am: "ያወዳድሩ" },
   step2Body: {
@@ -106,6 +106,40 @@ const DICT = {
   inAddis: { en: "in Addis Ababa", am: "በአዲስ አበባ" },
   browseAll: { en: "See all vendors", am: "ሁሉንም ባለሙያዎች ይመልከቱ" },
   noResultsTitle: { en: "Nothing matches yet", am: "እስካሁን ምንም አልተገኘም" },
+  // Search starts from the celebration; availability by date is paused for this phase.
+  anyOccasion: { en: "Any celebration", am: "ማንኛውም ዝግጅት" },
+  whatDoYouNeed: { en: "Who do you need?", am: "ምን ባለሙያ ያስፈልግዎታል?" },
+  showVendors: { en: "Show vendors", am: "ባለሙያዎችን አሳይ" },
+  moreFilters: { en: "More filters", am: "ተጨማሪ ማጣሪያዎች" },
+  reassure: { en: "Free to use. No commission. You call vendors yourself.", am: "ነጻ ነው። ኮሚሽን የለም። ባለሙያዎቹን ራስዎ ያገኟቸዋል።" },
+  seePlans: { en: "See Pro and Featured plans", am: "ፕሮ እና ፊቸርድ እቅዶች" },
+  // apple.com-style home bands: a short line under each headline.
+  heroTagline: { en: "Photographers, DJs, decorators and more across Addis Ababa.", am: "ፎቶግራፈሮች፣ ዲጄዎች፣ ዲኮር እና ሌሎች በአዲስ አበባ።" },
+  occasionsTone: { en: "Start with the day you're planning.", am: "እያቀዱት ባለው ቀን ይጀምሩ።" },
+  // Home slideshow: one slide per celebration, each a way into the results.
+  slidesLabel: { en: "Celebrations", am: "ክብረ በዓላት" },
+  slideWedding: { en: "Weddings.", am: "ሰርግ።" },
+  slideWeddingText: { en: "Photographers, videographers, makeup artists and decorators who know the ceremonies.", am: "ስነ ስርዓቱን የሚያውቁ ፎቶግራፈሮች፣ ቪዲዮግራፈሮች፣ የሜካፕ ባለሙያዎችና ዲኮር።" },
+  slideWeddingCta: { en: "See wedding vendors", am: "የሰርግ ባለሙያዎችን ይመልከቱ" },
+  slideBirthday: { en: "Birthdays.", am: "ልደት።" },
+  slideBirthdayText: { en: "Cakes, DJs, decor and someone to catch every candle.", am: "ኬክ፣ ዲጄ፣ ዲኮር እና እያንዳንዱን ቅጽበት የሚያነሳ ፎቶግራፈር።" },
+  slideBirthdayCta: { en: "See birthday vendors", am: "የልደት ባለሙያዎችን ይመልከቱ" },
+  slideCorporate: { en: "Corporate events.", am: "የድርጅት ዝግጅቶች።" },
+  slideCorporateText: { en: "Planners, sound, light and cameras for launches and galas.", am: "ለምርት ማስተዋወቂያና ለጋላ እቅድ አውጪዎች፣ ድምጽ፣ መብራትና ካሜራ።" },
+  slideCorporateCta: { en: "See corporate vendors", am: "የድርጅት ዝግጅት ባለሙያዎችን ይመልከቱ" },
+  slideTeam: { en: "Everyone you need.", am: "የሚያስፈልግዎ ሁሉ።" },
+  slideTeamText: { en: "From the first photo to the last song, in one directory.", am: "ከመጀመሪያው ፎቶ እስከ መጨረሻው ዘፈን፣ በአንድ ቦታ።" },
+  pause: { en: "Pause slideshow", am: "ስላይዱን አቁም" },
+  play: { en: "Play slideshow", am: "ስላይዱን አጫውት" },
+  goToSlide: { en: "Go to slide", am: "ወደ ስላይድ" },
+  slideOf: { en: "of", am: "ከ" },
+  photos: { en: "Photos", am: "ፎቶዎች" },
+  numbersTitle: { en: "Real people. Checked in person.", am: "እውነተኛ ባለሙያዎች። በአካል የተረጋገጡ።" },
+  categoriesTone: { en: "Browse by what you need.", am: "በሚያስፈልግዎ ይፈልጉ።" },
+  verifiedTone: { en: "Met in person, work checked.", am: "በአካል ተገናኝተን ስራቸውን አይተናል።" },
+  howTone: { en: "Three steps. No middleman.", am: "ሶስት ደረጃዎች። ደላላ የለም።" },
+  vendorsShort: { en: "vendors", am: "ባለሙያዎች" },
+  seeVendors: { en: "See vendors", am: "ባለሙያዎችን ይመልከቱ" },
   signIn: { en: "Sign in", am: "ግባ" },
   account: { en: "Account", am: "አካውንት" },
 } satisfies Record<string, L>;

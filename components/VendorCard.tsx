@@ -3,7 +3,6 @@ import type { Lang } from "@/lib/catalog";
 import { category } from "@/lib/catalog";
 import { etb, translator } from "@/lib/i18n";
 import type { VendorRow } from "@/lib/vendors";
-import { Stars } from "./Stars";
 
 export function VendorCard({ v, lang, sponsored }: { v: VendorRow; lang: Lang; sponsored?: boolean }) {
   const t = translator(lang);
@@ -15,17 +14,17 @@ export function VendorCard({ v, lang, sponsored }: { v: VendorRow; lang: Lang; s
         {sponsored && <span className="tag sponsor">{t("sponsored")}</span>}
       </div>
       <div className="body">
-        <div className="spread">
-          <span className="name">{name}</span>
-          {v.verified && <span className="tag verified">✓ {t("verified")}</span>}
-        </div>
-        <div className="small muted">
-          {cat?.icon} {cat?.one[lang]}
-        </div>
-        <div className="spread" style={{ marginTop: ".35rem" }}>
-          {v.review_count > 0 ? <Stars rating={v.rating} count={v.review_count} /> : <span className="small muted">{t("noReviews")}</span>}
-          {v.starting_price != null && <span className="small"><span className="muted">{t("from")}</span> <b>{etb(v.starting_price, lang)}</b></span>}
-        </div>
+        <span className="name">{name}</span>
+        <span className="kind">
+          <span>{cat?.one[lang]}</span>
+          {v.verified && <span className="tick">✓ {t("verified")}</span>}
+        </span>
+        <span className="facts">
+          {v.review_count > 0
+            ? <span className="rate" aria-label={`${v.rating.toFixed(1)} / 5, ${v.review_count} ${t("reviews")}`}><span className="star" aria-hidden="true">★</span> <b>{v.rating.toFixed(1)}</b> ({v.review_count})</span>
+            : <span className="rate">{t("noReviews")}</span>}
+          {v.starting_price != null && <span className="price"><small>{t("from")}</small>{etb(v.starting_price, lang)}</span>}
+        </span>
       </div>
     </Link>
   );

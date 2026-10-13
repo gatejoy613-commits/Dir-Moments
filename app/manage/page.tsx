@@ -4,13 +4,12 @@ import type { Metadata } from "next";
 import { category } from "@/lib/catalog";
 import { etb, i18n } from "@/lib/i18n";
 import { addDays, dualDate, todayAddis } from "@/lib/ethiopian";
-import { completeness, vendorBy, vendorDetail, vendorStats } from "@/lib/vendors";
+import { completeness, vendorBy, vendorStats } from "@/lib/vendors";
 import { one, q } from "@/lib/db";
 import { currentVendorId, requireRole } from "@/lib/accounts";
 import { FOUNDING_VENDOR_LIMIT, PRICES, TIERS } from "@/lib/tiers";
 import { noticeText } from "@/lib/formErrors";
 import { str } from "@/lib/util";
-import { Calendar } from "@/components/Calendar";
 import { Stars } from "@/components/Stars";
 
 export const dynamic = "force-dynamic";
@@ -27,16 +26,6 @@ async function currentVendor() {
   const v = id ? await vendorBy("id", id) : null;
   if (!v) redirect("/join");
   return v;
-}
-
-async function toggleDay(fd: FormData) {
-  "use server";
-  const v = await currentVendor();
-  const day = str(fd.get("day"));
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
-  const deleted = await q("DELETE FROM availability WHERE vendor_id = $1 AND day = $2 RETURNING day", [v.id, day]);
-  if (!deleted.length) await q("INSERT INTO availability (vendor_id, day) VALUES ($1, $2) ON CONFLICT DO NOTHING", [v.id, day]);
-  redirect(`/manage#availability`);
 }
 
 async function replyReview(fd: FormData) {
@@ -80,8 +69,7 @@ export default async function Manage({ searchParams }: { searchParams: Promise<R
   const { lang } = await i18n();
   const am = lang === "am";
   const v = await currentVendor();
-  const [{ busy }, stats, allReviews, subs, foundingUsed] = await Promise.all([
-    vendorDetail(v.id),
+  const [stats, allReviews, subs, foundingUsed] = await Promise.all([
     vendorStats(v.id, v.category),
     q("SELECT * FROM reviews WHERE vendor_id = $1 AND status <> 'removed' ORDER BY created_at DESC", [v.id]),
     q("SELECT *, to_char(starts_on, 'YYYY-MM-DD') AS s, to_char(ends_on, 'YYYY-MM-DD') AS e FROM subscriptions WHERE vendor_id = $1 ORDER BY created_at DESC", [v.id]),
@@ -95,7 +83,7 @@ export default async function Manage({ searchParams }: { searchParams: Promise<R
   const statusText: Record<string, [string, string]> = {
     pending: ["Waiting for review. We check every profile, and may call you to arrange an in-person visit for the verified badge.", "በግምገማ ላይ። እያንዳንዱን መገለጫ እንፈትሻለን፤ ለማረጋገጫ ልንደውልልዎ እንችላለን።"],
     approved: ["Live. Clients can find you.", "ታትሟል። ደንበኞች ሊያገኙዎት ይችላሉ።"],
-    rejected: ["Not approved. Check the note below, update your profile and we'll look again.", "አልጸደቀም። ማስታወሻውን ይመልከቱ።"],
+    rejected: ["Not approved. Check the note below and update your profile; saving sends it back to us for another look.", "አልጸደቀም። ማስታወሻውን ይመልከቱ፤ መገለጫዎን አስተካክለው ሲያስቀምጡ እንደገና እንገመግመዋለን።"],
     hidden: ["Hidden by our team. Contact us.", "በቡድናችን ተደብቋል። ያግኙን።"],
   };
 
@@ -150,13 +138,6 @@ export default async function Manage({ searchParams }: { searchParams: Promise<R
             <div>{Math.round(stats.avg.views)} {am ? "እይታ" : "views"} · {stats.avg.contacts.toFixed(1)} {am ? "ጠቅታ" : "taps"}</div></div>
         )}
       </div>
-
-      <h2 id="availability">{am ? "ነጻ ቀናት" : "Availability"}</h2>
-      <p className="small muted">{am ? "የተያዙ ቀናትን ለመምረጥ ቀኑን ይንኩ፤ እንደገና ሲነኩት ነጻ ይሆናል።" : "Tap a date to mark it booked; tap again to free it. Clients searching for that date won't see you."}</p>
-      <Calendar start={todayAddis()} days={120} busy={busy} lang={lang} toggleAction={async (fd) => {
-        "use server";
-        await toggleDay(fd);
-      }} />
 
       <h2 id="reviews">{am ? "አስተያየቶች" : "Reviews"}</h2>
       {allReviews.length === 0 && <p className="muted">{am ? "እስካሁን አስተያየት የለም። ደንበኞችዎ እንዲጽፉ ይጠይቁ።" : "No reviews yet. Ask happy clients to leave one on your profile."}</p>}
